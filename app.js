@@ -1,7 +1,10 @@
 // ============================================================
 // キャラページ工房 ― メインアプリ
+// アカウント登録はありません。公開すると「編集用リンク」が発行され、
+// そのリンクがあれば後から直せます（同じ端末では自動で覚えています）。
 // config.js が空なら DEMO モード（localStorage）、
 // Supabase の URL と anon key が入っていれば本番モードで動きます。
+// 本番モードでは、保存は合言葉チェック付きの関数（RPC）経由だけです。
 // ============================================================
 (function () {
   "use strict";
@@ -13,13 +16,15 @@
   }
   var esc = window.KoubouViewer.esc;
 
+  // 公開ページを読む時に使う列（edit_key は絶対に含めない）
+  var PUBLIC_COLS = "id,title,author_name,intro,template,ui_template,open_fx,back_fx,theme_color,bg_image,world_text,about_text,characters,is_public,created_at,updated_at";
+
   // ---------------- 状態 ----------------
   var state = {
-    user: null,            // { id, email }
     editingId: null,       // 編集中のページid（null=新規）
+    editingKey: null,      // 編集中ページの編集用キー
     draft: null,           // 編集中データ
-    activeChar: 0,
-    authMode: "login"      // login | signup
+    activeChar: 0
   };
 
   function newChar(n) {
@@ -41,6 +46,11 @@
       characters: [newChar(1)]
     };
   }
+  function genHex(n) {
+    var s = "";
+    while (s.length < n) s += Math.floor(Math.random() * 0xffffffff).toString(16).padStart(8, "0");
+    return s.slice(0, n);
+  }
 
   // ---------------- 保存レイヤー ----------------
   var LS = {
@@ -48,107 +58,20 @@
     set: function (k, v) { localStorage.setItem(k, JSON.stringify(v)); }
   };
 
-  var Store = {
-    // --- 認証 ---
-    signUp: function (email, pw) {
-      if (DEMO) {
-        var users = LS.get("cpk_users", {});
-        if (users[email]) return Promise.reject(new Error("このメールアドレスは登録済みです"));
-        var id = "u" + Date.now().toString(36);
-        users[email] = { id: id, email: email, pw: pw };
-        LS.set("cpk_users", users);
-        LS.set("cpk_session", { id: id, email: email });
-        return Promise.resolve({ id: id, email: email });
-      }
-      return sb.auth.signUp({ email: email, password: pw }).then(function (r) {
-        if (r.error) throw r.error;
-        if (!r.data.user) throw new Error("登録に失敗しました");
-        return { id: r.data.user.id, email: email };
-      });
-    },
-    signIn: function (email, pw) {
-      if (DEMO) {
-        var users = LS.get("cpk_users", {});
-        var u = users[email];
-        if (!u || u.pw !== pw) return Promise.reject(new Error("メールアドレスかパスワードが違います"));
-        LS.set("cpk_session", { id: u.id, email: email });
-        return Promise.resolve({ id: u.id, email: email });
-      }
-      return sb.auth.signInWithPassword({ email: email, password: pw }).then(function (r) {
-        if (r.error) throw r.error;
-        return { id: r.data.user.id, email: email };
-      });
-    },
-    signOut: function () {
-      if (DEMO) { localStorage.removeItem("cpk_session"); return Promise.resolve(); }
-      return sb.auth.signOut();
-    },
-    currentUser: function () {
-      if (DEMO) return Promise.resolve(LS.get("cpk_session", null));
-      return sb.auth.getUser().then(function (r) {
-        return r.data && r.data.user ? { id: r.data.user.id, email: r.data.user.email } : null;
-      });
-    },
-    // --- ページ ---
-    listPublic: function () {
-      if (DEMO) {
-        return Promise.resolve(LS.get("cpk_pages", []).filter(function (p) { return p.is_public; })
-          .sort(function (a, b) { return b.created_at - a.created_at; }));
-      }
-      return sb.from("pages").select("*").eq("is_public", true)
-        .order("created_at", { ascending: false })
-        .then(function (r) { if (r.error) throw r.error; return r.data.map(fromRow); });
-    },
-    listMine: function (uid) {
-      if (DEMO) {
-        return Promise.resolve(LS.get("cpk_pages", []).filter(function (p) { return p.owner === uid; })
-          .sort(function (a, b) { return b.updated_at - a.updated_at; }));
-      }
-      return sb.from("pages").select("*").eq("owner", uid)
-        .order("updated_at", { ascending: false })
-        .then(function (r) { if (r.error) throw r.error; return r.data.map(fromRow); });
-    },
-    getPage: function (id) {
-      if (DEMO) {
-        var p = LS.get("cpk_pages", []).filter(function (x) { return x.id === id; })[0];
-        return Promise.resolve(p || null);
-      }
-      return sb.from("pages").select("*").eq("id", id).single()
-        .then(function (r) { if (r.error) return null; return fromRow(r.data); });
-    },
-    savePage: function (page) {
-      if (DEMO) {
-        var pages = LS.get("cpk_pages", []);
-        var now = Date.now();
-        if (page.id) {
-          for (var i = 0; i < pages.length; i++) {
-            if (pages[i].id === page.id) { page.updated_at = now; pages[i] = page; break; }
-          }
-        } else {
-          page.id = "p" + now.toString(36) + Math.random().toString(36).slice(2, 6);
-          page.created_at = now; page.updated_at = now;
-          pages.push(page);
-        }
-        LS.set("cpk_pages", pages);
-        return Promise.resolve(page);
-      }
-      var row = toRow(page);
-      var q = page.id ? sb.from("pages").update(row).eq("id", page.id).select().single()
-                       : sb.from("pages").insert(row).select().single();
-      return q.then(function (r) { if (r.error) throw r.error; return fromRow(r.data); });
-    },
-    deletePage: function (id) {
-      if (DEMO) {
-        LS.set("cpk_pages", LS.get("cpk_pages", []).filter(function (p) { return p.id !== id; }));
-        return Promise.resolve();
-      }
-      return sb.from("pages").delete().eq("id", id).then(function (r) { if (r.error) throw r.error; });
-    }
-  };
+  // この端末で作ったページの記録 { id, edit_key, title }
+  function getMyPages() { return LS.get("cpk_my_pages", []); }
+  function upsertMyPage(id, key, title) {
+    var list = getMyPages().filter(function (e) { return e.id !== id; });
+    list.unshift({ id: id, edit_key: key, title: title || "" });
+    LS.set("cpk_my_pages", list);
+  }
+  function removeMyPage(id) {
+    LS.set("cpk_my_pages", getMyPages().filter(function (e) { return e.id !== id; }));
+  }
 
-  function toRow(p) {
+  function toPayload(p) {
     return {
-      owner: p.owner, title: p.title, author_name: p.author_name, intro: p.intro,
+      title: p.title, author_name: p.author_name, intro: p.intro,
       template: p.template, ui_template: p.ui_template, open_fx: p.open_fx, back_fx: p.back_fx,
       theme_color: p.theme_color, bg_image: p.bg_image || null,
       world_text: p.world_text, about_text: p.about_text,
@@ -157,12 +80,113 @@
   }
   function fromRow(r) {
     return {
-      id: r.id, owner: r.owner, title: r.title, author_name: r.author_name, intro: r.intro,
+      id: r.id, title: r.title, author_name: r.author_name, intro: r.intro,
       template: r.template, ui_template: r.ui_template, open_fx: r.open_fx, back_fx: r.back_fx,
       theme_color: r.theme_color, bg_image: r.bg_image || "", world_text: r.world_text,
       about_text: r.about_text, characters: r.characters || [], is_public: r.is_public,
-      created_at: new Date(r.created_at).getTime(), updated_at: new Date(r.updated_at).getTime()
+      created_at: r.created_at ? new Date(r.created_at).getTime() : 0,
+      updated_at: r.updated_at ? new Date(r.updated_at).getTime() : 0
     };
+  }
+
+  var Store = {
+    // --- 読む（公開ページ） ---
+    listPublic: function () {
+      if (DEMO) {
+        return Promise.resolve(LS.get("cpk_pages", []).filter(function (p) { return p.is_public; })
+          .sort(function (a, b) { return b.created_at - a.created_at; }).map(demoClone));
+      }
+      return sb.from("pages").select(PUBLIC_COLS).eq("is_public", true)
+        .order("created_at", { ascending: false })
+        .then(function (r) { if (r.error) throw r.error; return r.data.map(fromRow); });
+    },
+    getPage: function (id) {
+      if (DEMO) {
+        var p = LS.get("cpk_pages", []).filter(function (x) { return x.id === id; })[0];
+        return Promise.resolve(p ? demoClone(p) : null);
+      }
+      return sb.from("pages").select(PUBLIC_COLS).eq("id", id).single()
+        .then(function (r) { if (r.error) return null; return fromRow(r.data); });
+    },
+    // --- 作る：{ id, edit_key } が返る ---
+    createPage: function (page) {
+      if (DEMO) {
+        var pages = LS.get("cpk_pages", []);
+        var now = Date.now();
+        var rec = JSON.parse(JSON.stringify(page));
+        rec.id = "p" + now.toString(36) + genHex(6);
+        rec.edit_key = genHex(32) + genHex(32);
+        rec.created_at = now; rec.updated_at = now;
+        pages.push(rec);
+        LS.set("cpk_pages", pages);
+        upsertMyPage(rec.id, rec.edit_key, rec.title);
+        return Promise.resolve({ id: rec.id, edit_key: rec.edit_key });
+      }
+      return sb.rpc("create_page", { payload: toPayload(page) }).then(function (r) {
+        if (r.error) throw r.error;
+        var d = typeof r.data === "string" ? JSON.parse(r.data) : r.data;
+        if (!d || !d.id || !d.edit_key) throw new Error("公開に失敗しました");
+        upsertMyPage(d.id, d.edit_key, page.title);
+        return d;
+      });
+    },
+    // --- 編集用に読む：キーが合った時だけ返る ---
+    getForEdit: function (id, key) {
+      if (DEMO) {
+        var p = LS.get("cpk_pages", []).filter(function (x) { return x.id === id && x.edit_key === key; })[0];
+        return Promise.resolve(p ? demoClone(p) : null);
+      }
+      return sb.rpc("get_page_for_edit", { p_id: id, p_key: key }).then(function (r) {
+        if (r.error) throw r.error;
+        if (!r.data) return null;
+        var row = typeof r.data === "string" ? JSON.parse(r.data) : r.data;
+        return fromRow(row);
+      });
+    },
+    // --- 直す：キーが合えば true ---
+    updatePage: function (id, key, page) {
+      if (DEMO) {
+        var pages = LS.get("cpk_pages", []);
+        for (var i = 0; i < pages.length; i++) {
+          if (pages[i].id === id && pages[i].edit_key === key) {
+            var rec = JSON.parse(JSON.stringify(page));
+            rec.id = id; rec.edit_key = key;
+            rec.created_at = pages[i].created_at; rec.updated_at = Date.now();
+            pages[i] = rec;
+            LS.set("cpk_pages", pages);
+            upsertMyPage(id, key, rec.title);
+            return Promise.resolve(true);
+          }
+        }
+        return Promise.resolve(false);
+      }
+      return sb.rpc("update_page", { p_id: id, p_key: key, payload: toPayload(page) }).then(function (r) {
+        if (r.error) throw r.error;
+        if (r.data === true) upsertMyPage(id, key, page.title);
+        return r.data === true;
+      });
+    },
+    // --- 消す：キーが合えば true ---
+    deletePage: function (id, key) {
+      if (DEMO) {
+        var before = LS.get("cpk_pages", []);
+        var after = before.filter(function (p) { return !(p.id === id && p.edit_key === key); });
+        if (after.length === before.length) return Promise.resolve(false);
+        LS.set("cpk_pages", after);
+        removeMyPage(id);
+        return Promise.resolve(true);
+      }
+      return sb.rpc("delete_page", { p_id: id, p_key: key }).then(function (r) {
+        if (r.error) throw r.error;
+        if (r.data === true) removeMyPage(id);
+        return r.data === true;
+      });
+    }
+  };
+  function demoClone(p) {
+    var c = JSON.parse(JSON.stringify(p));
+    delete c.edit_key;
+    return c;
   }
 
   // ---------------- 画像の縮小 ----------------
@@ -184,7 +208,7 @@
   }
 
   // ---------------- ルーティング ----------------
-  var views = ["home", "login", "editor", "mypage", "page", "preview"];
+  var views = ["home", "editor", "mypage", "page", "preview"];
   function show(name) {
     views.forEach(function (v) {
       document.getElementById("view-" + v).hidden = v !== name;
@@ -193,21 +217,32 @@
   }
   function route() {
     var hash = location.hash || "#/";
-    var m = hash.match(/^#\/view\/(.+)$/);
-    if (m) { openViewer(decodeURIComponent(m[1])); return; }
+    var mv = hash.match(/^#\/view\/(.+)$/);
+    if (mv) { openViewer(decodeURIComponent(mv[1])); return; }
+    var me = hash.match(/^#\/edit\/([^\/]+)\/(.+)$/);
+    if (me) { openEditorWithKey(decodeURIComponent(me[1]), decodeURIComponent(me[2])); return; }
     if (hash.indexOf("#/editor") === 0) { openEditor(); return; }
     if (hash.indexOf("#/mypage") === 0) { openMyPage(); return; }
-    if (hash.indexOf("#/login") === 0) { show("login"); refreshAuthUI(); return; }
     show("home"); loadGallery();
   }
   function shareLink(id) {
     return location.origin + location.pathname + "#/view/" + id;
+  }
+  function editLink(id, key) {
+    return location.origin + location.pathname + "#/edit/" + id + "/" + key;
   }
   function copyText(text, doneEl) {
     function done() { if (doneEl) { doneEl.hidden = false; setTimeout(function () { doneEl.hidden = true; }, 2000); } }
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(text).then(done, function () { prompt("リンクをコピーしてください", text); });
     } else { prompt("リンクをコピーしてください", text); }
+  }
+  function startNewPage() {
+    state.editingId = null; state.editingKey = null;
+    state.draft = newDraft(); state.activeChar = 0;
+    hidePublishResult();
+    if ((location.hash || "").indexOf("#/editor") === 0) { openEditor(); }
+    else location.hash = "#/editor";
   }
 
   // ---------------- ホーム（一覧） ----------------
@@ -247,42 +282,65 @@
     root.innerHTML = '<p class="note">読み込み中…</p>';
     Store.getPage(id).then(function (p) {
       if (!p) { root.innerHTML = '<p class="note">ページが見つかりませんでした。非公開か、削除された可能性があります。</p>'; return; }
-      if (!p.is_public && (!state.user || state.user.id !== p.owner)) {
-        root.innerHTML = '<p class="note">このページは非公開です。</p>'; return;
-      }
+      if (!p.is_public) { root.innerHTML = '<p class="note">このページは非公開です。</p>'; return; }
       window.KoubouViewer.renderPage(root, p);
     });
   }
 
-  // ---------------- マイページ ----------------
+  // ---------------- 自分のページ ----------------
   function openMyPage() {
-    if (!state.user) { location.hash = "#/login"; return; }
     show("mypage");
-    document.getElementById("mypage-user").textContent = "ログイン中：" + state.user.email + (DEMO ? "（DEMOモード：この端末だけの仮アカウントです）" : "");
-    Store.listMine(state.user.id).then(function (pages) {
-      var box = document.getElementById("mypage-list");
-      document.getElementById("mypage-empty").hidden = pages.length > 0;
+    var entries = getMyPages();
+    var box = document.getElementById("mypage-list");
+    document.getElementById("mypage-empty").hidden = entries.length > 0;
+    box.innerHTML = entries.length ? '<p class="note">読み込み中…</p>' : "";
+    if (!entries.length) return;
+    Promise.all(entries.map(function (e) {
+      return Store.getForEdit(e.id, e.edit_key).then(function (p) {
+        return { entry: e, page: p };
+      }).catch(function () { return { entry: e, page: null }; });
+    })).then(function (results) {
       box.innerHTML = "";
-      pages.forEach(function (p) {
+      results.forEach(function (res) {
+        var e = res.entry, p = res.page;
         var wrap = document.createElement("div");
         wrap.className = "mypage-item";
+        if (!p) {
+          wrap.innerHTML = '<div class="page-card"><span class="page-card-title">' + esc(e.title || "（タイトル不明）") + "</span>" +
+            '<span class="page-card-meta">見つかりませんでした。削除されたか、編集用リンクが違う可能性があります。</span></div>' +
+            '<div class="mypage-actions"><button data-a="forget" class="btn btn-ghost btn-danger">この端末の記録を消す</button></div>';
+          wrap.querySelector('[data-a="forget"]').addEventListener("click", function () {
+            removeMyPage(e.id); openMyPage();
+          });
+          box.appendChild(wrap);
+          return;
+        }
         wrap.innerHTML = cardHTML(p) +
           '<div class="mypage-actions">' +
           '<span class="note">' + (p.is_public ? "公開中" : "非公開") + "</span>" +
           '<button data-a="edit" class="btn btn-ghost">編集</button>' +
           '<button data-a="toggle" class="btn btn-ghost">' + (p.is_public ? "非公開にする" : "公開する") + "</button>" +
-          '<button data-a="copy" class="btn btn-ghost">リンクをコピー</button>' +
+          '<button data-a="copy" class="btn btn-ghost">公開リンクをコピー</button>' +
+          '<button data-a="copyedit" class="btn btn-ghost">編集用リンクをコピー</button>' +
           '<button data-a="del" class="btn btn-ghost btn-danger">削除</button></div>';
         wrap.querySelector('[data-a="edit"]').addEventListener("click", function () {
-          state.editingId = p.id; state.draft = JSON.parse(JSON.stringify(p)); state.activeChar = 0;
-          location.hash = "#/editor"; openEditor();
+          location.hash = "#/edit/" + p.id + "/" + e.edit_key;
+          if ((location.hash || "") === "#/edit/" + p.id + "/" + e.edit_key) route();
         });
         wrap.querySelector('[data-a="toggle"]').addEventListener("click", function () {
-          p.is_public = !p.is_public; Store.savePage(p).then(openMyPage);
+          var np = JSON.parse(JSON.stringify(p));
+          np.is_public = !p.is_public;
+          Store.updatePage(p.id, e.edit_key, np).then(function (ok) {
+            if (ok) openMyPage(); else alert("切り替えに失敗しました。編集用リンクが違う可能性があります。");
+          });
         });
         wrap.querySelector('[data-a="copy"]').addEventListener("click", function () { copyText(shareLink(p.id), null); });
+        wrap.querySelector('[data-a="copyedit"]').addEventListener("click", function () { copyText(editLink(p.id, e.edit_key), null); });
         wrap.querySelector('[data-a="del"]').addEventListener("click", function () {
-          if (confirm("このページを削除しますか？ 元に戻せません。")) Store.deletePage(p.id).then(openMyPage);
+          if (!confirm("このページを削除しますか？ 元に戻せません。")) return;
+          Store.deletePage(p.id, e.edit_key).then(function (ok) {
+            if (ok) openMyPage(); else alert("削除に失敗しました。編集用リンクが違う可能性があります。");
+          });
         });
         box.appendChild(wrap);
       });
@@ -304,7 +362,7 @@
     renderCharTabs(); renderCharEditor();
   }
   function readSiteFields() {
-    var d = state.draft;
+    var d = state.draft; if (!d) return;
     d.title = $("f-title").value; d.author_name = $("f-author").value;
     d.intro = $("f-intro").value; d.theme_color = $("f-theme-color").value;
     d.world_text = $("f-world").value; d.about_text = $("f-about").value;
@@ -313,10 +371,32 @@
     d.is_public = $("f-is-public").checked;
   }
   function openEditor() {
-    if (!state.user) { location.hash = "#/login"; return; }
-    if (!state.draft) { state.draft = newDraft(); state.editingId = null; }
+    if (!state.draft) { state.draft = newDraft(); state.editingId = null; state.editingKey = null; }
     show("editor"); bindDraft();
-    $("editor-status").textContent = state.editingId ? "編集中のページです。直したら「公開する」か「下書き保存」を押してください。" : "新しいページを作っています。";
+    $("editor-status").textContent = state.editingId
+      ? "保存済みのページを編集中です。直したら「公開する」か「下書き保存」を押してください。"
+      : "新しいページを作っています。登録はいりません。";
+  }
+  function openEditorWithKey(id, key) {
+    if (state.editingId === id && state.editingKey === key && state.draft) { openEditor(); return; }
+    show("editor");
+    state.draft = null; state.editingId = null; state.editingKey = null;
+    hidePublishResult();
+    $("editor-status").textContent = "読み込み中…";
+    $("char-tabs").innerHTML = ""; $("char-editor").innerHTML = "";
+    Store.getForEdit(id, key).then(function (p) {
+      if (!p) {
+        $("editor-status").textContent = "この編集用リンクでは開けませんでした。リンクが違うか、ページが削除された可能性があります。";
+        return;
+      }
+      state.editingId = p.id; state.editingKey = key;
+      state.draft = p; state.activeChar = 0;
+      upsertMyPage(p.id, key, p.title);
+      bindDraft();
+      $("editor-status").textContent = "保存済みのページを編集中です。直したら「公開する」か「下書き保存」を押してください。";
+    }).catch(function (e) {
+      $("editor-status").textContent = "読み込みに失敗しました：" + (e.message || e);
+    });
   }
 
   function renderCharTabs() {
@@ -370,13 +450,11 @@
     h += '<label>苦手なもの <input id="c-dislikes" type="text" value="' + esc(ch.dislikes) + '"></label>';
     h += '<label>相関（関係） <textarea id="c-relations" rows="2" placeholder="例：○○とは双子の姉妹／△△とはライバル">' + esc(ch.relations) + "</textarea></label>";
 
-    // 使わない項目を隠す
     h += '<fieldset class="mini-block"><legend>使わない項目を隠す</legend><div class="hide-grid">' +
       STD_FIELDS.map(function (f) {
         return '<label class="check-row"><input type="checkbox" data-hide="' + f[0] + '"' + (hidden.indexOf(f[0]) > -1 ? " checked" : "") + "> " + f[1] + "を隠す</label>";
       }).join("") + "</div></fieldset>";
 
-    // 自由項目
     h += '<fieldset class="mini-block"><legend>自由項目（項目の名前を自分で作れます）</legend><div id="custom-list">';
     (ch.custom_fields || []).forEach(function (f, fi) {
       h += '<div class="custom-row">' +
@@ -452,42 +530,57 @@
 
   function collectDraft() { readSiteFields(); readCharForm(); return state.draft; }
 
+  // ---------------- 保存・公開 ----------------
+  function hidePublishResult() {
+    var box = $("publish-result");
+    if (box) { box.hidden = true; box.innerHTML = ""; }
+  }
+  function showSaveResult(id, key, published) {
+    var box = $("publish-result");
+    var pub = shareLink(id), edt = editLink(id, key);
+    box.innerHTML =
+      '<h3>' + (published ? "公開しました" : "保存しました") + "</h3>" +
+      '<div class="link-row"><span class="link-label">公開リンク</span>' +
+      '<input type="text" readonly value="' + esc(pub) + '">' +
+      '<button class="btn btn-ghost" data-copy="' + esc(pub) + '">コピー</button></div>' +
+      '<div class="link-row"><span class="link-label">編集用リンク</span>' +
+      '<input type="text" readonly value="' + esc(edt) + '">' +
+      '<button class="btn btn-ghost" data-copy="' + esc(edt) + '">コピー</button></div>' +
+      '<p class="note">編集用リンクは、別の端末からこのページを直すための唯一の合言葉です。なくさないように、メモやブックマークに保存してください。同じ端末なら「自分のページ」からも直せます。</p>' +
+      (DEMO ? '<p class="note">※DEMOモードなので、これらのリンクはこの端末の中でだけ使えます。</p>' : "");
+    box.hidden = false;
+    box.querySelectorAll("[data-copy]").forEach(function (b) {
+      b.addEventListener("click", function () { copyText(b.getAttribute("data-copy"), null); });
+    });
+  }
+
   function saveDraft(publish) {
-    if (!state.user) { location.hash = "#/login"; return; }
+    if (!state.draft) { alert("先にページの内容を作ってください"); return; }
     var d = collectDraft();
     if (!d.title) { alert("サイトのタイトルを入れてください"); return; }
     var page = JSON.parse(JSON.stringify(d));
-    page.id = state.editingId || undefined;
-    page.owner = state.user.id;
-    if (publish) page.is_public = $("f-is-public").checked;
-    Store.savePage(page).then(function (saved) {
-      state.editingId = saved.id;
-      state.draft.id = saved.id;
-      if (publish) {
-        var link = shareLink(saved.id);
-        $("editor-status").innerHTML = "";
-        $("editor-status").textContent = "公開しました。このリンクでシェアできます：" + link;
-        copyText(link, null);
-        alert("公開しました！ リンクをコピーしました。\n" + link + (DEMO ? "\n\n※DEMOモードなので、このリンクはこの端末の中でだけ開けます。本当のシェアは保存先を繋いでからです。" : ""));
-        loadGallery();
-      } else {
-        $("editor-status").textContent = "下書きを保存しました。";
-      }
-    }).catch(function (e) { alert("保存に失敗しました：" + e.message); });
-  }
-
-  // ---------------- 認証UI ----------------
-  function refreshAuthUI() {
-    $("nav-auth").textContent = state.user ? "ログアウト" : "ログイン";
-    $("nav-auth").setAttribute("href", state.user ? "#/mypage" : "#/login");
-    $("auth-note").textContent = DEMO
-      ? "DEMOモードです。アカウントはこの端末の中にだけ作られる仮のものです。本番では保存先に登録されます。"
-      : "キャラページ工房のアカウントです。作ったページはマイページからいつでも直せます。";
-    $("auth-title").textContent = state.authMode === "login" ? "ログイン" : "新規登録";
-    $("auth-submit").textContent = state.authMode === "login" ? "ログインする" : "登録する";
-    $("auth-switch").textContent = state.authMode === "login"
-      ? "アカウントを持っていない人はこちら（新規登録）"
-      : "アカウントを持っている人はこちら（ログイン）";
+    delete page.id; delete page.edit_key;
+    if (publish) { page.is_public = $("f-is-public").checked; }
+    else { page.is_public = false; }
+    $("editor-status").textContent = "保存中…";
+    var done = function (id, key) {
+      state.editingId = id; state.editingKey = key;
+      state.draft.id = id;
+      upsertMyPage(id, key, page.title);
+      $("editor-status").textContent = publish ? "公開しました。下のリンクからシェアできます。" : "下書きを保存しました（非公開です）。";
+      showSaveResult(id, key, publish);
+      if (publish) loadGallery();
+    };
+    if (state.editingId && state.editingKey) {
+      Store.updatePage(state.editingId, state.editingKey, page).then(function (ok) {
+        if (!ok) { alert("保存に失敗しました。編集用リンクが違う可能性があります。"); return; }
+        done(state.editingId, state.editingKey);
+      }).catch(function (e) { alert("保存に失敗しました：" + e.message); });
+    } else {
+      Store.createPage(page).then(function (res) {
+        done(res.id, res.edit_key);
+      }).catch(function (e) { alert("保存に失敗しました：" + e.message); });
+    }
   }
 
   // ---------------- 初期化 ----------------
@@ -498,7 +591,12 @@
     if (q.get("view")) location.hash = "#/view/" + q.get("view");
 
     $("gallery-search").addEventListener("input", function (e) { renderGallery(e.target.value); });
+    $("nav-create").addEventListener("click", function (e) { e.preventDefault(); startNewPage(); });
+    var heroCreate = $("hero-create");
+    if (heroCreate) heroCreate.addEventListener("click", function (e) { e.preventDefault(); startNewPage(); });
+    $("btn-new-from-mypage").addEventListener("click", function () { startNewPage(); });
     $("btn-add-char").addEventListener("click", function () {
+      if (!state.draft) return;
       readCharForm();
       state.draft.characters.push(newChar(state.draft.characters.length + 1));
       state.activeChar = state.draft.characters.length - 1;
@@ -513,6 +611,7 @@
     $("btn-save-draft").addEventListener("click", function () { saveDraft(false); });
     $("btn-publish").addEventListener("click", function () { saveDraft(true); });
     $("btn-preview").addEventListener("click", function () {
+      if (!state.draft) return;
       var d = collectDraft();
       show("preview");
       window.KoubouViewer.renderPage($("preview-root"), JSON.parse(JSON.stringify(d)));
@@ -520,29 +619,8 @@
     $("btn-copy-link").addEventListener("click", function () {
       if (currentViewId) copyText(shareLink(currentViewId), $("copy-done"));
     });
-    $("btn-logout").addEventListener("click", function () {
-      Store.signOut().then(function () { state.user = null; state.draft = null; refreshAuthUI(); location.hash = "#/"; });
-    });
-    $("auth-switch").addEventListener("click", function () {
-      state.authMode = state.authMode === "login" ? "signup" : "login";
-      $("auth-error").hidden = true; refreshAuthUI();
-    });
-    $("auth-submit").addEventListener("click", function () {
-      var email = $("auth-email").value.trim(), pw = $("auth-password").value;
-      var err = $("auth-error");
-      if (!email || pw.length < 6) { err.textContent = "メールアドレスと、6文字以上のパスワードを入れてください。"; err.hidden = false; return; }
-      var fn = state.authMode === "login" ? Store.signIn : Store.signUp;
-      fn(email, pw).then(function (u) {
-        state.user = u; refreshAuthUI(); location.hash = "#/mypage";
-      }).catch(function (e) { err.textContent = e.message || "失敗しました"; err.hidden = false; });
-    });
-    $("nav-auth").addEventListener("click", function (e) {
-      if (state.user) { /* マイページへ（ログアウトはマイページ内） */ }
-    });
 
-    Store.currentUser().then(function (u) {
-      state.user = u; refreshAuthUI(); route();
-    });
+    route();
     window.addEventListener("hashchange", route);
   });
 })();

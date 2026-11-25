@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>キャラページ工房 — CHARACTER PAGE WORKSHOP</title>
 <meta name="description" content="テンプレを選んで画像と設定を入れるだけで、キャラ紹介サイトが作れるサービス。公開ボタンでその場で公開、リンクをコピーしてシェアできます。">
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css?v=3">
 </head>
 <body>
 
@@ -16,14 +16,13 @@
   </a>
   <nav id="main-nav">
     <a href="#/" data-nav="home">みんなが作ったページ</a>
-    <a href="#/editor" data-nav="editor">作る</a>
-    <a href="#/mypage" data-nav="mypage">マイページ</a>
-    <a href="#/login" data-nav="login" id="nav-auth">ログイン</a>
+    <a href="#/editor" data-nav="editor" id="nav-create">作る</a>
+    <a href="#/mypage" data-nav="mypage">自分のページ</a>
   </nav>
 </header>
 
 <div id="demo-banner" class="demo-banner" hidden>
-  DEMOモードで動いています。これは試作用で、作品はこの端末の中にだけ保存されます。本当の公開（みんなと共有）は、SETUP.md の手順で保存先を繋ぐと使えるようになります。
+  DEMOモードで動いています。これは試作用で、作ったものはこの端末の中にだけ保存されます。編集用リンクもこの端末でだけ使えます。本当の公開（みんなと共有）は、SETUP.md の手順で保存先を繋ぐと使えるようになります。
 </div>
 
 <main id="app">
@@ -32,31 +31,46 @@
     <div class="hero">
       <h1>キャラページ工房</h1>
       <p class="hero-lead">テンプレを選んで、画像と設定を入れるだけ。<br>AFTERIMAGE風・ABYSS風のキャラ紹介サイトが、公開ボタンひとつでその場で公開できます。</p>
-      <a class="btn btn-big" href="#/editor">ページを作る</a>
+      <a class="btn btn-big" href="#/editor" id="hero-create">ページを作る</a>
+      <p class="hero-note">登録はいりません。作って、公開ボタンを押すだけです。</p>
     </div>
+
+    <div class="section-head">
+      <h2>できること</h2>
+    </div>
+    <div class="feature-grid">
+      <div class="feature-card">
+        <h3>テンプレ2種</h3>
+        <p>記録アーカイブ型と監視ターミナル型。世界観に合わせて選べます。</p>
+      </div>
+      <div class="feature-card">
+        <h3>UIテンプレ5種</h3>
+        <p>メニューやカードの見た目を、テンプレとは別に自由に組み合わせられます。</p>
+      </div>
+      <div class="feature-card">
+        <h3>開く・戻る演出</h3>
+        <p>キャラを開く時と、戻る時の演出を、それぞれ好きなものに変えられます。</p>
+      </div>
+      <div class="feature-card">
+        <h3>自由項目</h3>
+        <p>「能力の代償」のような、自分の世界観だけの項目を自分で作って足せます。</p>
+      </div>
+      <div class="feature-card">
+        <h3>画像を入れるだけ</h3>
+        <p>立ち絵やイラストを選ぶだけ。大きすぎる画像は自動で小さくします。</p>
+      </div>
+      <div class="feature-card">
+        <h3>公開ボタンで即公開</h3>
+        <p>押したその場で公開され、リンクをコピーしてそのままシェアできます。</p>
+      </div>
+    </div>
+
     <div class="section-head">
       <h2>みんなが作ったページ</h2>
       <input id="gallery-search" type="search" placeholder="タイトル・作者で探す">
     </div>
     <div id="gallery-grid" class="gallery-grid"></div>
     <p id="gallery-empty" class="empty-note" hidden>まだ公開されたページがありません。最初の1ページを作ってみましょう。</p>
-  </section>
-
-  <!-- ログイン / 新規登録 -->
-  <section id="view-login" class="route-view" hidden>
-    <div class="auth-box">
-      <h2 id="auth-title">ログイン</h2>
-      <p class="note" id="auth-note"></p>
-      <label>メールアドレス
-        <input id="auth-email" type="email" autocomplete="email" placeholder="you@example.com">
-      </label>
-      <label>パスワード
-        <input id="auth-password" type="password" autocomplete="current-password" placeholder="6文字以上">
-      </label>
-      <p id="auth-error" class="error-note" hidden></p>
-      <button id="auth-submit" class="btn btn-big">ログインする</button>
-      <button id="auth-switch" class="btn btn-ghost">アカウントを持っていない人はこちら（新規登録）</button>
-    </div>
   </section>
 
   <!-- 編集画面 -->
@@ -70,6 +84,7 @@
       </div>
     </div>
     <p id="editor-status" class="note"></p>
+    <div id="publish-result" class="publish-result" hidden></div>
 
     <div class="editor-layout">
       <div class="editor-main">
@@ -135,13 +150,13 @@
     </div>
   </section>
 
-  <!-- マイページ -->
+  <!-- 自分のページ -->
   <section id="view-mypage" class="route-view" hidden>
     <div class="section-head">
-      <h2>マイページ</h2>
-      <button id="btn-logout" class="btn btn-ghost">ログアウト</button>
+      <h2>自分のページ</h2>
+      <button id="btn-new-from-mypage" class="btn">新しく作る</button>
     </div>
-    <p id="mypage-user" class="note"></p>
+    <p class="note">この端末で作ったページの一覧です。ページを直す時は「編集」を押してください。別の端末から直したい時は、各ページの「編集用リンク」を保存しておいてください。編集用リンクが、別の端末から直すための唯一の合言葉です。</p>
     <div id="mypage-list" class="gallery-grid"></div>
     <p id="mypage-empty" class="empty-note" hidden>まだページがありません。「作る」から最初のページを作りましょう。</p>
   </section>
@@ -182,6 +197,6 @@
 <script src="config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="viewer.js"></script>
-<script src="app.js"></script>
+<script src="app.js?v=2"></script>
 </body>
 </html>

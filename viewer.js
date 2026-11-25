@@ -1,6 +1,7 @@
 // ============================================================
 // キャラページ工房 ― 公開ページの描画と演出
 // renderPage(root, page) で、テンプレ×UIテンプレ×演出を再現します。
+// 画面構成：表紙（COVER）→ メニュー（MENU）→ 各セクション画面を切り替える方式。
 // ============================================================
 (function () {
   "use strict";
@@ -112,23 +113,42 @@
     abyss: { cls: "tpl-abyss", kicker: "INTEGRATED CONTAINMENT TERMINAL" },
     sacred: { cls: "tpl-sacred", kicker: "SACRED ARCHIVE" },
     neon: { cls: "tpl-neon", kicker: "NEON CITY ARCHIVE" },
-    wa: { cls: "tpl-wa", kicker: "SCROLL ARCHIVE" }
+    wa: { cls: "tpl-wa", kicker: "SCROLL ARCHIVE" },
+    pastel: { cls: "tpl-pastel", kicker: "PASTEL ARCHIVE" },
+    mono: { cls: "tpl-mono", kicker: "MONOCHROME FILM" },
+    game: { cls: "tpl-game", kicker: "GAME ARCHIVE" },
+    fantasy: { cls: "tpl-fantasy", kicker: "STORYBOOK ARCHIVE" }
   };
   // 明るいテンプレ（背景画像のオーバーレイを薄くする）
-  var LIGHT_TEMPLATES = { sacred: true, wa: true };
+  var LIGHT_TEMPLATES = { sacred: true, wa: true, pastel: true, mono: true, fantasy: true };
 
   // ---------- 本体描画 ----------
   function renderPage(root, page) {
-    var prefix = uid();
     var chars = page.characters || [];
     var tplDef = TEMPLATES[page.template] || TEMPLATES.afterimage;
     var tpl = tplDef.cls;
+    var isLight = !!LIGHT_TEMPLATES[page.template];
     var ui = "ui-" + (page.ui_template || "record");
     var theme = page.theme_color || "#c8102e";
-    var overlay = LIGHT_TEMPLATES[page.template]
+    var overlay = isLight
       ? "linear-gradient(rgba(250,247,239,.82),rgba(250,247,239,.9))"
       : "linear-gradient(rgba(0,0,0,.72),rgba(0,0,0,.85))";
     var bg = page.bg_image ? "background-image:" + overlay + ",url(" + page.bg_image + ");" : "";
+
+    // リンク集（古いページには links が無いので空で扱う／http(s) のみ採用）
+    var links = (page.links || []).filter(function (l) {
+      return l && l.url && /^https?:\/\//i.test(l.url);
+    });
+
+    // 表紙の背景：ページ背景画像 → 最初のキャラ画像 の順で採用
+    var coverImg = page.bg_image || "";
+    if (!coverImg) {
+      for (var ci = 0; ci < chars.length; ci++) { if (chars[ci].image) { coverImg = chars[ci].image; break; } }
+    }
+    var coverOverlay = isLight
+      ? "linear-gradient(rgba(252,250,244,.55),rgba(252,250,244,.93))"
+      : "linear-gradient(rgba(0,0,0,.45),rgba(0,0,0,.88))";
+    var coverBg = coverImg ? ' style="background-image:' + coverOverlay + ",url(" + esc(coverImg) + ');"' : "";
 
     var menuItems = [
       ["characters", "CHARACTERS", chars.length],
@@ -136,31 +156,52 @@
       ["gallery", "GALLERY", chars.reduce(function (n, c) { return n + (c.image ? 1 : 0) + (c.gallery || []).length; }, 0)],
       ["quotes", "QUOTES", chars.filter(function (c) { return c.quotes; }).length],
       ["relations", "RELATIONS", chars.filter(function (c) { return c.relations; }).length],
+      ["links", "LINKS", links.length],
       ["about", "ABOUT", null]
     ];
 
+    function backToMenu() {
+      return '<button class="cs-back" data-goto="menu">&larr; BACK TO MENU</button>';
+    }
+    function screenOpen(name, hidden) {
+      return '<div class="cs-screen" data-screen="' + name + '"' + (hidden ? " hidden" : "") + ">";
+    }
+
     var html = "";
     html += '<div class="cs ' + tpl + " " + ui + '" style="--theme:' + esc(theme) + ";" + bg + '">';
-    // トップ
-    html += '<div class="cs-hero">' +
-      '<p class="cs-hero-kicker">' + tplDef.kicker + "</p>" +
-      "<h2>" + esc(page.title || "UNTITLED") + "</h2>" +
-      (page.intro ? '<p class="cs-hero-intro">' + nl(page.intro) + "</p>" : "") +
-      '<p class="cs-hero-author">by ' + esc(page.author_name || "") + "</p>" +
-      '<p class="cs-hud">MODE: VIEW <span class="cs-rec">REC</span> SYNC ' + Math.min(100, chars.length * 25) + "%</p>" +
-      "</div>";
-    // メニュー（UIテンプレで見た目が変わる）
-    html += '<nav class="cs-menu">' + menuItems.map(function (m, i) {
-      return '<a href="javascript:void(0)" data-scroll="' + prefix + "-" + m[0] + '">' +
-        '<span class="cs-menu-no">' + ("0" + (i + 1)) + "</span>" +
-        '<span class="cs-menu-name">' + m[1] + "</span>" +
-        (m[2] != null ? '<span class="cs-menu-count">' + m[2] + "</span>" : "") +
-        '<span class="cs-menu-open">OPEN</span></a>';
-    }).join("") + "</nav>";
 
-    // 一覧と詳細の入れ物
-    html += '<div class="cs-listwrap" id="' + prefix + '-characters">';
-    html += '<div data-zone="list"><h3 class="cs-sec-title">CHARACTERS</h3><div class="cs-grid">';
+    // ===== 表紙（COVER） =====
+    html += '<div class="cs-screen cs-screen-cover" data-screen="cover">' +
+      '<div class="cs-cover-bg"' + coverBg + "></div>" +
+      '<div class="cs-hero cs-cover-inner">' +
+        '<p class="cs-hero-kicker">' + tplDef.kicker + "</p>" +
+        "<h2>" + esc(page.title || "UNTITLED") + "</h2>" +
+        (page.intro ? '<p class="cs-hero-intro">' + nl(page.intro) + "</p>" : "") +
+        '<p class="cs-hero-author">by ' + esc(page.author_name || "") + "</p>" +
+        '<p class="cs-hud">MODE: VIEW <span class="cs-rec">REC</span> SYNC ' + Math.min(100, chars.length * 25) + "%</p>" +
+        '<button class="cs-enter" data-enter>ENTER</button>' +
+      "</div>" +
+    "</div>";
+
+    // ===== メニュー（MENU） =====
+    html += screenOpen("menu", true) +
+      '<div class="cs-hero cs-hero-mini">' +
+        '<p class="cs-hero-kicker">' + tplDef.kicker + "</p>" +
+        "<h2>" + esc(page.title || "UNTITLED") + "</h2>" +
+        '<p class="cs-hero-author">by ' + esc(page.author_name || "") + "</p>" +
+      "</div>" +
+      '<nav class="cs-menu">' + menuItems.map(function (m, i) {
+        return '<a href="javascript:void(0)" data-goto="' + m[0] + '">' +
+          '<span class="cs-menu-no">' + ("0" + (i + 1)) + "</span>" +
+          '<span class="cs-menu-name">' + m[1] + "</span>" +
+          (m[2] != null ? '<span class="cs-menu-count">' + m[2] + "</span>" : "") +
+          '<span class="cs-menu-open">OPEN</span></a>';
+      }).join("") + "</nav>" +
+    "</div>";
+
+    // ===== キャラ一覧（CHARACTERS） =====
+    html += screenOpen("characters", true) + backToMenu() +
+      '<h3 class="cs-sec-title">CHARACTERS</h3><div class="cs-grid">';
     chars.forEach(function (ch, idx) {
       html += '<button class="cs-card" data-open="' + idx + '" style="--ch-color:' + esc(ch.color || theme) + '">' +
         '<span class="cs-card-no">' + esc(ch.record_no || ("RECORD " + ("00" + (idx + 1)).slice(-3))) + "</span>" +
@@ -171,57 +212,92 @@
         (ch.catchphrase ? '<span class="cs-card-catch">' + esc(ch.catchphrase) + "</span>" : "") +
         "</button>";
     });
-    html += "</div></div>";
-    html += '<div data-zone="detail" hidden></div>';
-    html += "</div>";
+    html += "</div>" + (chars.length ? "" : '<p class="cs-dim">NO DATA</p>') + "</div>";
 
-    // WORLD
-    html += '<section class="cs-section" id="' + prefix + '-world"><h3 class="cs-sec-title">WORLD</h3>' +
-      (page.world_text ? "<p>" + nl(page.world_text) + "</p>" : '<p class="cs-dim">NO DATA</p>') + "</section>";
+    // ===== キャラ詳細（DETAIL：カードを押すと中身が入る） =====
+    html += screenOpen("detail", true) + "</div>";
 
-    // GALLERY
+    // ===== WORLD =====
+    html += screenOpen("world", true) + backToMenu() +
+      '<section class="cs-section"><h3 class="cs-sec-title">WORLD</h3>' +
+      (page.world_text ? "<p>" + nl(page.world_text) + "</p>" : '<p class="cs-dim">NO DATA</p>') + "</section></div>";
+
+    // ===== GALLERY =====
     var allImgs = [];
     chars.forEach(function (c) { if (c.image) allImgs.push(c.image); (c.gallery || []).forEach(function (g) { allImgs.push(g); }); });
-    html += '<section class="cs-section" id="' + prefix + '-gallery"><h3 class="cs-sec-title">GALLERY</h3><div class="cs-gallery">' +
+    html += screenOpen("gallery", true) + backToMenu() +
+      '<section class="cs-section"><h3 class="cs-sec-title">GALLERY</h3><div class="cs-gallery">' +
       (allImgs.length ? allImgs.map(function (s) { return '<img src="' + s + '" alt="">'; }).join("") : '<p class="cs-dim">NO IMAGE</p>') +
-      "</div></section>";
+      "</div></section></div>";
 
-    // QUOTES
-    html += '<section class="cs-section" id="' + prefix + '-quotes"><h3 class="cs-sec-title">QUOTES</h3>';
+    // ===== QUOTES =====
+    html += screenOpen("quotes", true) + backToMenu() +
+      '<section class="cs-section"><h3 class="cs-sec-title">QUOTES</h3>';
+    var hasQuotes = false;
     chars.forEach(function (c) {
       if (!c.quotes) return;
+      hasQuotes = true;
       html += '<div class="cs-quote-block"><p class="cs-quote-name">' + esc(c.name || "") + "</p>" +
         esc(c.quotes).split("\n").filter(Boolean).map(function (q) { return "<blockquote>" + q + "</blockquote>"; }).join("") + "</div>";
     });
-    html += "</section>";
+    if (!hasQuotes) html += '<p class="cs-dim">NO DATA</p>';
+    html += "</section></div>";
 
-    // RELATIONS
-    html += '<section class="cs-section" id="' + prefix + '-relations"><h3 class="cs-sec-title">RELATIONS</h3>';
+    // ===== RELATIONS =====
+    html += screenOpen("relations", true) + backToMenu() +
+      '<section class="cs-section"><h3 class="cs-sec-title">RELATIONS</h3>';
     var hasRel = false;
     chars.forEach(function (c) {
       if (!c.relations) return; hasRel = true;
       html += '<p class="cs-relation"><strong>' + esc(c.name || "") + "</strong> ― " + nl(c.relations) + "</p>";
     });
     if (!hasRel) html += '<p class="cs-dim">NO DATA</p>';
-    html += "</section>";
+    html += "</section></div>";
 
-    // ABOUT
-    html += '<section class="cs-section" id="' + prefix + '-about"><h3 class="cs-sec-title">ABOUT</h3>' +
+    // ===== LINKS（リンク集） =====
+    html += screenOpen("links", true) + backToMenu() +
+      '<section class="cs-section"><h3 class="cs-sec-title">LINKS</h3>' +
+      '<div class="cs-links-profile">' +
+        '<p class="cs-links-title">' + esc(page.title || "UNTITLED") + "</p>" +
+        '<p class="cs-links-author">by ' + esc(page.author_name || "") + "</p>" +
+        (page.intro ? '<p class="cs-links-intro">' + nl(page.intro) + "</p>" : "") +
+      "</div>" +
+      (links.length
+        ? '<div class="cs-link-list">' + links.map(function (l) {
+            return '<a class="cs-link-btn" href="' + esc(l.url) + '" target="_blank" rel="noopener">' + esc(l.label || l.url) + "</a>";
+          }).join("") + "</div>"
+        : '<p class="cs-dim">NO DATA</p>') +
+      '<button class="cs-link-chars" data-goto="characters">キャラ紹介を見る</button>' +
+      "</section></div>";
+
+    // ===== ABOUT =====
+    html += screenOpen("about", true) + backToMenu() +
+      '<section class="cs-section"><h3 class="cs-sec-title">ABOUT</h3>' +
       (page.about_text ? "<p>" + nl(page.about_text) + "</p>" : '<p class="cs-dim">NO DATA</p>') +
-      '<p class="cs-dim">AUTHOR: ' + esc(page.author_name || "") + "</p></section>";
+      '<p class="cs-dim">AUTHOR: ' + esc(page.author_name || "") + "</p></section></div>";
 
     html += "</div>";
     root.innerHTML = html;
 
-    var listZone = root.querySelector('[data-zone="list"]');
-    var detailZone = root.querySelector('[data-zone="detail"]');
+    // ---------- 画面切り替え ----------
+    var csEl = root.querySelector(".cs");
+    var screens = {};
+    root.querySelectorAll("[data-screen]").forEach(function (el) {
+      screens[el.getAttribute("data-screen")] = el;
+    });
+    var detailScreen = screens.detail;
     var current = null;
 
-    root.querySelectorAll("[data-scroll]").forEach(function (a) {
-      a.addEventListener("click", function () {
-        var el = document.getElementById(a.getAttribute("data-scroll"));
-        if (el) el.scrollIntoView({ behavior: "smooth" });
-      });
+    function showScreen(name) {
+      Object.keys(screens).forEach(function (k) { screens[k].hidden = k !== name; });
+      if (csEl) csEl.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    var enterBtn = root.querySelector("[data-enter]");
+    if (enterBtn) enterBtn.addEventListener("click", function () { showScreen("menu"); });
+
+    root.querySelectorAll("[data-goto]").forEach(function (el) {
+      el.addEventListener("click", function () { showScreen(el.getAttribute("data-goto")); });
     });
 
     root.querySelectorAll("[data-open]").forEach(function (btn) {
@@ -230,19 +306,15 @@
         if (!ch) return;
         current = ch;
         playFx("open", page.open_fx || "glitch", ch.name || "", ch.color || theme, function () {
-          listZone.hidden = true;
-          detailZone.hidden = false;
-          detailZone.innerHTML = renderDetail(page, ch);
-          var back = detailZone.querySelector('[data-act="back"]');
+          detailScreen.innerHTML = renderDetail(page, ch);
+          showScreen("detail");
+          var back = detailScreen.querySelector('[data-act="back"]');
           if (back) back.addEventListener("click", function () {
             playFx("back", page.back_fx || "closed", ch.name || "", ch.color || theme, function () {
-              detailZone.hidden = true;
-              detailZone.innerHTML = "";
-              listZone.hidden = false;
+              showScreen("characters");
               current = null;
             });
           });
-          detailZone.scrollIntoView({ behavior: "smooth" });
         });
       });
     });
@@ -251,3 +323,4 @@
 
   window.KoubouViewer = { renderPage: renderPage, playFx: playFx, esc: esc };
 })();
+

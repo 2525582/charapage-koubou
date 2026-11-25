@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>キャラページ工房 — CHARACTER PAGE WORKSHOP</title>
 <meta name="description" content="テンプレを選んで画像と設定を入れるだけで、キャラ紹介サイトが作れるサービス。公開ボタンでその場で公開、リンクをコピーしてシェアできます。">
-<link rel="stylesheet" href="style.css?v=4">
+<link rel="stylesheet" href="style.css?v=5">
 </head>
 <body>
 
@@ -30,7 +30,7 @@
   <section id="view-home" class="route-view">
     <div class="hero">
       <h1>キャラページ工房</h1>
-      <p class="hero-lead">テンプレを選んで、画像と設定を入れるだけ。<br>AFTERIMAGE風・ABYSS風・セイクリッド風・ネオン風・和風のキャラ紹介サイトが、公開ボタンひとつでその場で公開できます。</p>
+      <p class="hero-lead">テンプレを選んで、画像と設定を入れるだけ。<br>ダークな記録アーカイブから、明るいパステルポップや絵本風まで、9種のテンプレのキャラ紹介サイトが、公開ボタンひとつでその場で公開できます。リンク集も付けられます。</p>
       <a class="btn btn-big" href="#/editor" id="hero-create">ページを作る</a>
       <p class="hero-note">登録はいりません。作って、公開ボタンを押すだけです。</p>
     </div>
@@ -40,8 +40,8 @@
     </div>
     <div class="feature-grid">
       <div class="feature-card">
-        <h3>テンプレ5種</h3>
-        <p>記録アーカイブ型、監視ターミナル型、聖堂アーカイブ型、サイバーシティ型、巻物アーカイブ型。世界観に合わせて選べます。</p>
+        <h3>テンプレ9種</h3>
+        <p>記録アーカイブ型、監視ターミナル型、聖堂アーカイブ型、サイバーシティ型、巻物アーカイブ型、パステルポップ型、フィルム写真型、RPGウィンドウ型、絵本ファンタジー型。世界観に合わせて選べます。リンク集（LINKS）も付けられます。</p>
       </div>
       <div class="feature-card">
         <h3>UIテンプレ5種</h3>
@@ -85,10 +85,16 @@
     </div>
     <p id="editor-status" class="note"></p>
     <div id="publish-result" class="publish-result" hidden></div>
+    <nav class="editor-steps">
+      <a class="btn btn-ghost" href="#sec-site" data-step="sec-site">サイト設定</a>
+      <a class="btn btn-ghost" href="#sec-template" data-step="sec-template">テンプレと演出</a>
+      <a class="btn btn-ghost" href="#sec-links" data-step="sec-links">リンク集</a>
+      <a class="btn btn-ghost" href="#sec-chars" data-step="sec-chars">キャラクター</a>
+    </nav>
 
     <div class="editor-layout">
       <div class="editor-main">
-        <fieldset class="editor-block">
+        <fieldset class="editor-block" id="sec-site">
           <legend>サイト全体の設定</legend>
           <label>サイトのタイトル <input id="f-title" type="text" placeholder="例：CHARACTER ARCHIVE"></label>
           <label>作者名 <input id="f-author" type="text" placeholder="例：ぱんだ"></label>
@@ -102,7 +108,7 @@
           <label>ABOUTの文章 <textarea id="f-about" rows="4" placeholder="作者について、注意事項など"></textarea></label>
         </fieldset>
 
-        <fieldset class="editor-block">
+        <fieldset class="editor-block" id="sec-template">
           <legend>テンプレと演出</legend>
           <label>サイトテンプレ
             <select id="f-template">
@@ -111,6 +117,10 @@
               <option value="sacred">セイクリッド風 ― 聖堂アーカイブ型</option>
               <option value="neon">ネオン風 ― サイバーシティ型</option>
               <option value="wa">和風 ― 巻物アーカイブ型</option>
+              <option value="pastel">パステルポップ風 ― 明るいポップ型</option>
+              <option value="mono">モノクロ風 ― フィルム写真型</option>
+              <option value="game">ゲーム風 ― RPGウィンドウ型</option>
+              <option value="fantasy">絵本風 ― ファンタジー型</option>
             </select>
           </label>
           <label>UIテンプレ（サイトテンプレと自由に組み合わせできます）
@@ -143,7 +153,14 @@
           <label class="check-row"><input id="f-is-public" type="checkbox" checked> 公開する（みんなが作ったページに載ります）</label>
         </fieldset>
 
-        <fieldset class="editor-block">
+        <fieldset class="editor-block" id="sec-links">
+          <legend>リンク集（LINKS）</legend>
+          <p class="note">ここで入れたリンクは、公開ページの「LINKS」画面に並びます。Xや関連サイトのURLを並べられます。</p>
+          <div id="links-list"></div>
+          <button class="btn btn-ghost" id="link-add" type="button">＋ リンクを追加</button>
+        </fieldset>
+
+        <fieldset class="editor-block" id="sec-chars">
           <legend>キャラクター</legend>
           <div id="char-tabs" class="char-tabs"></div>
           <button id="btn-add-char" class="btn btn-ghost">＋ キャラを追加</button>
@@ -199,7 +216,7 @@
 
 <script src="config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="viewer.js?v=2"></script>
-<script src="app.js?v=3"></script>
+<script src="viewer.js?v=3"></script>
+<script src="app.js?v=4"></script>
 </body>
 </html>

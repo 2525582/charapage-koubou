@@ -17,7 +17,7 @@
   var esc = window.KoubouViewer.esc;
 
   // 公開ページを読む時に使う列（edit_key は絶対に含めない）
-  var PUBLIC_COLS = "id,title,author_name,intro,template,ui_template,open_fx,back_fx,theme_color,bg_image,world_text,about_text,characters,is_public,created_at,updated_at";
+  var PUBLIC_COLS = "id,title,author_name,intro,template,ui_template,open_fx,back_fx,theme_color,bg_image,world_text,about_text,characters,links,is_public,created_at,updated_at";
 
   // ---------------- 状態 ----------------
   var state = {
@@ -43,7 +43,7 @@
       bg_image: "", world_text: "", about_text: "",
       template: "afterimage", ui_template: "record",
       open_fx: "glitch", back_fx: "closed", is_public: true,
-      characters: [newChar(1)]
+      characters: [newChar(1)], links: []
     };
   }
   function genHex(n) {
@@ -75,7 +75,7 @@
       template: p.template, ui_template: p.ui_template, open_fx: p.open_fx, back_fx: p.back_fx,
       theme_color: p.theme_color, bg_image: p.bg_image || null,
       world_text: p.world_text, about_text: p.about_text,
-      characters: p.characters, is_public: p.is_public
+      characters: p.characters, links: p.links || [], is_public: p.is_public
     };
   }
   function fromRow(r) {
@@ -83,7 +83,7 @@
       id: r.id, title: r.title, author_name: r.author_name, intro: r.intro,
       template: r.template, ui_template: r.ui_template, open_fx: r.open_fx, back_fx: r.back_fx,
       theme_color: r.theme_color, bg_image: r.bg_image || "", world_text: r.world_text,
-      about_text: r.about_text, characters: r.characters || [], is_public: r.is_public,
+      about_text: r.about_text, characters: r.characters || [], links: r.links || [], is_public: r.is_public,
       created_at: r.created_at ? new Date(r.created_at).getTime() : 0,
       updated_at: r.updated_at ? new Date(r.updated_at).getTime() : 0
     };
@@ -252,7 +252,8 @@
   }
   var TPL_LABELS = {
     afterimage: "AFTERIMAGE風", abyss: "ABYSS風", sacred: "セイクリッド風",
-    neon: "ネオン風", wa: "和風"
+    neon: "ネオン風", wa: "和風", pastel: "パステルポップ風", mono: "モノクロ風",
+    game: "ゲーム風", fantasy: "絵本風"
   };
   function cardHTML(p) {
     var t = thumbOf(p);
@@ -363,7 +364,39 @@
     $("f-is-public").checked = !!d.is_public;
     $("bg-preview").innerHTML = d.bg_image ? '<img src="' + d.bg_image + '" alt=""><button class="btn btn-ghost" id="bg-clear">背景画像を消す</button>' : "";
     var bc = $("bg-clear"); if (bc) bc.addEventListener("click", function () { d.bg_image = ""; bindDraft(); });
+    renderLinksEditor();
     renderCharTabs(); renderCharEditor();
+  }
+
+  // ---------------- リンク集の編集 ----------------
+  function renderLinksEditor() {
+    var d = state.draft; if (!d) return;
+    var box = $("links-list"); if (!box) return;
+    if (!d.links) d.links = [];
+    box.innerHTML = d.links.map(function (l, li) {
+      return '<div class="custom-row">' +
+        '<input type="text" data-link-label="' + li + '" value="' + esc(l.label) + '" placeholder="表示名（例：X）">' +
+        '<input type="text" data-link-url="' + li + '" value="' + esc(l.url) + '" placeholder="URL（例：https://x.com/xxxx）">' +
+        '<button class="btn btn-ghost btn-danger" data-link-del="' + li + '">削除</button></div>';
+    }).join("");
+    box.querySelectorAll("[data-link-del]").forEach(function (b) {
+      b.addEventListener("click", function () {
+        readLinksForm();
+        state.draft.links.splice(Number(b.getAttribute("data-link-del")), 1);
+        renderLinksEditor();
+      });
+    });
+  }
+  function readLinksForm() {
+    var d = state.draft; if (!d) return;
+    var box = $("links-list"); if (!box) return;
+    var links = [];
+    box.querySelectorAll("[data-link-label]").forEach(function (el) {
+      var li = el.getAttribute("data-link-label");
+      var u = box.querySelector('[data-link-url="' + li + '"]');
+      links.push({ label: el.value, url: u ? u.value : "" });
+    });
+    d.links = links;
   }
   function readSiteFields() {
     var d = state.draft; if (!d) return;
@@ -387,7 +420,7 @@
     state.draft = null; state.editingId = null; state.editingKey = null;
     hidePublishResult();
     $("editor-status").textContent = "読み込み中…";
-    $("char-tabs").innerHTML = ""; $("char-editor").innerHTML = "";
+    $("char-tabs").innerHTML = ""; $("char-editor").innerHTML = ""; $("links-list").innerHTML = "";
     Store.getForEdit(id, key).then(function (p) {
       if (!p) {
         $("editor-status").textContent = "この編集用リンクでは開けませんでした。リンクが違うか、ページが削除された可能性があります。";
@@ -532,7 +565,7 @@
     });
   }
 
-  function collectDraft() { readSiteFields(); readCharForm(); return state.draft; }
+  function collectDraft() { readSiteFields(); readLinksForm(); readCharForm(); return state.draft; }
 
   // ---------------- 保存・公開 ----------------
   function hidePublishResult() {
@@ -605,6 +638,21 @@
       state.draft.characters.push(newChar(state.draft.characters.length + 1));
       state.activeChar = state.draft.characters.length - 1;
       renderCharTabs(); renderCharEditor();
+    });
+    $("link-add").addEventListener("click", function () {
+      if (!state.draft) return;
+      readLinksForm();
+      if (!state.draft.links) state.draft.links = [];
+      state.draft.links.push({ label: "", url: "" });
+      renderLinksEditor();
+    });
+    // ステップナビ：ハッシュルーティングと衝突しないよう、クリックで直接スクロールする
+    document.querySelectorAll("[data-step]").forEach(function (a) {
+      a.addEventListener("click", function (e) {
+        e.preventDefault();
+        var el = document.getElementById(a.getAttribute("data-step"));
+        if (el) el.scrollIntoView({ behavior: "smooth" });
+      });
     });
     ["f-title", "f-author", "f-intro", "f-world", "f-about"].forEach(function (id) {
       $(id).addEventListener("change", readSiteFields);

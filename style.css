@@ -71,10 +71,32 @@ input[type="file"] { color: #4c4754; font-size: 15px; }
 #site-footer { text-align: center; color: #8a8496; font-size: 13px; padding: 26px 0; border-top: 4px double #d9d2e3; background: #ffffff; }
 
 /* ============================================================
-   公開ページ共通
+   公開ページ共通（画面切り替え式：表紙→メニュー→各セクション）
    ============================================================ */
 .cs { --theme: #c8102e; background: #0b0b0f; color: #e8e8e8; padding: 26px 18px 50px; background-size: cover; background-position: center; }
+.cs-screen { animation: csScreenIn .45s ease both; }
+@keyframes csScreenIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes csFadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+
+/* --- 表紙（COVER） --- */
+.cs-screen-cover { position: relative; overflow: hidden; min-height: 80vh; display: flex; align-items: center; justify-content: center; margin: -26px -18px -50px; }
+.cs-cover-bg { position: absolute; inset: 0; background-size: cover; background-position: center; animation: csCoverZoom 22s ease-in-out infinite alternate; }
+@keyframes csCoverZoom { from { transform: scale(1); } to { transform: scale(1.08); } }
+.cs-cover-inner { position: relative; z-index: 1; width: 100%; }
+.cs .cs-screen-cover .cs-hero { border-bottom: none; }
+.cs-cover-inner > * { animation: csFadeUp .8s ease both; }
+.cs-cover-inner > *:nth-child(2) { animation-delay: .12s; }
+.cs-cover-inner > *:nth-child(3) { animation-delay: .24s; }
+.cs-cover-inner > *:nth-child(4) { animation-delay: .36s; }
+.cs-cover-inner > *:nth-child(5) { animation-delay: .48s; }
+.cs-cover-inner > *:nth-child(6) { animation-delay: .6s; }
+.cs-enter { margin-top: 28px; background: var(--theme); color: #fff; border: 1px solid var(--theme); padding: 14px 46px; font-size: 15px; font-weight: 700; letter-spacing: .35em; text-indent: .35em; cursor: pointer; }
+.cs-enter:hover { filter: brightness(1.15); transform: translateY(-2px); }
+
+/* --- ヒーロー（メニュー画面の見出しにも流用） --- */
 .cs-hero { text-align: center; padding: 34px 8px 20px; border-bottom: 1px solid #333; }
+.cs-hero-mini { padding: 10px 8px 14px; }
+.cs-hero-mini h2 { font-size: 26px; }
 .cs-hero-kicker { letter-spacing: .35em; font-size: 11px; color: var(--theme); margin: 0; }
 .cs-hero h2 { font-size: 34px; margin: 10px 0; word-break: break-word; }
 .cs-hero-intro { color: #bbb; line-height: 1.8; }
@@ -82,6 +104,7 @@ input[type="file"] { color: #4c4754; font-size: 15px; }
 .cs-hud { font-size: 11px; letter-spacing: .2em; color: #777; }
 .cs-rec { color: #ff3344; }
 .cs-sec-title { letter-spacing: .25em; border-left: 4px solid var(--theme); padding-left: 10px; margin: 28px 0 14px; }
+.cs-screen .cs-sec-title { margin-top: 8px; }
 .cs-section p { line-height: 1.9; color: #ccc; }
 .cs-dim { color: #666; }
 .cs-menu { display: flex; flex-direction: column; margin: 18px 0; }
@@ -103,6 +126,17 @@ input[type="file"] { color: #4c4754; font-size: 15px; }
 .cs-card-danger { color: #ff4455; font-size: 12px; letter-spacing: .1em; }
 .cs-card-catch { font-size: 12px; color: #bbb; }
 .cs-back { background: transparent; border: 1px solid #555; color: #ddd; padding: 8px 14px; cursor: pointer; margin-bottom: 14px; }
+
+/* --- キャラ詳細（項目が順にふわっと出る） --- */
+.cs-detail > * { animation: csFadeUp .55s ease both; }
+.cs-detail > *:nth-child(2) { animation-delay: .07s; }
+.cs-detail > *:nth-child(3) { animation-delay: .14s; }
+.cs-detail > *:nth-child(4) { animation-delay: .21s; }
+.cs-detail > *:nth-child(5) { animation-delay: .28s; }
+.cs-detail > *:nth-child(6) { animation-delay: .35s; }
+.cs-detail > *:nth-child(7) { animation-delay: .42s; }
+.cs-detail > *:nth-child(8) { animation-delay: .49s; }
+.cs-detail > *:nth-child(9) { animation-delay: .56s; }
 .cs-detail h3 { font-size: 30px; margin: 4px 0; }
 .cs-record { color: var(--ch-color); letter-spacing: .25em; font-size: 12px; margin: 0; }
 .cs-reading { color: #999; margin: 0 0 8px; }
@@ -119,6 +153,17 @@ input[type="file"] { color: #4c4754; font-size: 15px; }
 .cs-gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
 .cs-gallery img { width: 100%; height: 170px; object-fit: cover; border: 1px solid #333; }
 .cs-relation { line-height: 1.8; }
+
+/* --- リンク集（LINKS） --- */
+.cs-links-profile { text-align: center; margin: 6px 0 24px; }
+.cs-links-title { font-size: 24px; font-weight: 800; margin: 0 0 4px; word-break: break-word; }
+.cs-links-author { color: #888; font-size: 13px; margin: 0 0 10px; }
+.cs-links-intro { color: #bbb; line-height: 1.8; margin: 0; }
+.cs-link-list { display: flex; flex-direction: column; gap: 12px; max-width: 520px; margin: 0 auto; }
+.cs-link-btn { display: block; text-align: center; padding: 15px 18px; background: rgba(255,255,255,.05); border: 1px solid var(--theme); color: inherit; text-decoration: none; font-weight: 700; letter-spacing: .08em; word-break: break-all; }
+.cs-link-btn:hover { transform: translateY(-2px); background: rgba(255,255,255,.1); }
+.cs-link-chars { display: block; margin: 28px auto 4px; background: var(--theme); color: #fff; border: 1px solid var(--theme); padding: 12px 30px; font-size: 14px; font-weight: 700; letter-spacing: .12em; cursor: pointer; }
+.cs-link-chars:hover { filter: brightness(1.15); }
 
 /* --- サイトテンプレ差分 --- */
 .tpl-abyss { background: #050508; font-family: "Courier New", monospace; }
@@ -157,6 +202,10 @@ input[type="file"] { color: #4c4754; font-size: 15px; }
 .tpl-sacred .cs-quotes blockquote, .tpl-sacred .cs-quote-block blockquote { color: #4a453a; border-left-color: #c9a227; }
 .tpl-sacred .cs-quote-name { color: #b8860b; }
 .tpl-sacred .cs-gallery img, .tpl-sacred .cs-main-img { border: 1px solid #c9a227; }
+.tpl-sacred .cs-links-author { color: #8a8270; }
+.tpl-sacred .cs-links-intro { color: #5c5546; }
+.tpl-sacred .cs-link-btn { background: #ffffff; color: #33302a; }
+.tpl-sacred .cs-link-btn:hover { background: #f7efdb; }
 
 /* ネオン風：サイバーシティ（濃紺＋ピンク／シアンの発光） */
 .tpl-neon { background: #07030f; color: #f2f0ff; }
@@ -189,6 +238,10 @@ input[type="file"] { color: #4c4754; font-size: 15px; }
 .tpl-neon .cs-setting p { color: #d9d4ff; }
 .tpl-neon .cs-quotes blockquote, .tpl-neon .cs-quote-block blockquote { color: #e6e1ff; }
 .tpl-neon .cs-gallery img, .tpl-neon .cs-main-img { border: 1px solid #3a2270; border-radius: 8px; box-shadow: 0 0 10px rgba(25, 227, 255, .2); }
+.tpl-neon .cs-links-author { color: #8f86c9; }
+.tpl-neon .cs-links-intro { color: #cfc9f5; }
+.tpl-neon .cs-link-btn { border-radius: 10px; box-shadow: 0 0 10px rgba(25, 227, 255, .25); }
+.tpl-neon .cs-enter, .tpl-neon .cs-link-chars { box-shadow: 0 0 14px rgba(255, 46, 136, .45); border-radius: 8px; }
 
 /* 和風：巻物アーカイブ（和紙＋墨＋朱） */
 .tpl-wa { background: #f3ead8; color: #26221c; font-family: "Hiragino Mincho ProN", "Yu Mincho", Georgia, serif; }
@@ -220,6 +273,172 @@ input[type="file"] { color: #4c4754; font-size: 15px; }
 .tpl-wa .cs-quotes blockquote, .tpl-wa .cs-quote-block blockquote { color: #3d372d; border-left-color: #b03a2e; }
 .tpl-wa .cs-quote-name { color: #b03a2e; }
 .tpl-wa .cs-gallery img, .tpl-wa .cs-main-img { border: 1px solid #26221c; }
+.tpl-wa .cs-links-author { color: #8a7f6a; }
+.tpl-wa .cs-links-intro { color: #4d463a; }
+.tpl-wa .cs-link-btn { background: #faf4e3; color: #26221c; }
+.tpl-wa .cs-link-btn:hover { background: #efe4c8; }
+
+/* パステルポップ：明るいピンクとクリーム（丸くて柔らかい） */
+.tpl-pastel { background: #fff5f7; color: #4a3548; font-family: "Hiragino Maru Gothic ProN", "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif; }
+.tpl-pastel .cs-hero { border-bottom: 3px dotted #ff9ecb; }
+.tpl-pastel .cs-hero h2 { color: #4a3548; }
+.tpl-pastel .cs-hero-kicker { color: #e86ba7; }
+.tpl-pastel .cs-hero-intro { color: #7a5a72; }
+.tpl-pastel .cs-hero-author { color: #b18ba6; }
+.tpl-pastel .cs-hud { color: #c9a3bd; }
+.tpl-pastel .cs-sec-title { border-left: none; background: #ffe3ef; color: #4a3548; border-radius: 999px; padding: 6px 16px; display: inline-block; letter-spacing: .18em; }
+.tpl-pastel .cs-section p { color: #5d4257; }
+.tpl-pastel .cs-dim { color: #c9a3bd; }
+.tpl-pastel .cs-menu { gap: 10px; }
+.tpl-pastel .cs-menu a { background: #ffffff; border: 2px solid #ffd3e4; border-radius: 999px; padding: 12px 18px; box-shadow: 0 4px 12px rgba(255, 158, 203, .18); }
+.tpl-pastel .cs-menu a:hover { background: #fff0f6; transform: translateY(-1px); }
+.tpl-pastel .cs-menu-no { color: #e86ba7; }
+.tpl-pastel .cs-menu-count { background: #eef1ff; color: #5a6bc0; border-radius: 999px; }
+.tpl-pastel .cs-menu-open { background: #ff9ecb; border-radius: 999px; }
+.tpl-pastel .cs-card { background: #ffffff; border: 2px solid #ffd3e4; border-top: 6px solid #a5b8ff; border-radius: 22px; color: #4a3548; padding: 14px; box-shadow: 0 8px 20px rgba(255, 158, 203, .2); }
+.tpl-pastel .cs-card:hover { box-shadow: 0 12px 26px rgba(165, 184, 255, .35); }
+.tpl-pastel .cs-card img { border-radius: 16px; }
+.tpl-pastel .cs-card-noimg { background: #fff0f6; color: #d79bbd; border-radius: 16px; }
+.tpl-pastel .cs-card-name { color: #4a3548; }
+.tpl-pastel .cs-card-reading { color: #b18ba6; }
+.tpl-pastel .cs-card-catch { color: #7a5a72; }
+.tpl-pastel .cs-back { border: 2px solid #ff9ecb; color: #c74b8a; background: #ffffff; border-radius: 999px; padding: 8px 20px; }
+.tpl-pastel .cs-detail h3 { color: #4a3548; }
+.tpl-pastel .cs-reading { color: #b18ba6; }
+.tpl-pastel .cs-catch { border-left-color: #ff9ecb; }
+.tpl-pastel .cs-field { border-bottom: 2px dotted #ffd3e4; }
+.tpl-pastel .cs-field dd { color: #5d4257; }
+.tpl-pastel .cs-setting p { color: #5d4257; }
+.tpl-pastel .cs-quotes blockquote, .tpl-pastel .cs-quote-block blockquote { color: #5d4257; border-left-color: #a5b8ff; background: #f4f6ff; border-radius: 0 12px 12px 0; padding: 8px 14px; }
+.tpl-pastel .cs-quote-name { color: #e86ba7; }
+.tpl-pastel .cs-gallery img, .tpl-pastel .cs-main-img { border: 2px solid #ffd3e4; border-radius: 16px; }
+.tpl-pastel .cs-links-author { color: #b18ba6; }
+.tpl-pastel .cs-links-intro { color: #7a5a72; }
+.tpl-pastel .cs-link-btn { background: #ffffff; border: 2px solid #ff9ecb; border-radius: 999px; color: #4a3548; box-shadow: 0 4px 12px rgba(255, 158, 203, .2); }
+.tpl-pastel .cs-link-btn:hover { background: #fff0f6; }
+.tpl-pastel .cs-enter, .tpl-pastel .cs-link-chars { border-radius: 999px; box-shadow: 0 6px 16px rgba(255, 158, 203, .4); }
+
+/* モノクロフィルム：白黒写真の世界（グレースケール＋細い黒枠） */
+.tpl-mono { background: #f4f4f2; color: #141414; font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif; }
+.tpl-mono .cs-hero { border-bottom: 1px solid #141414; }
+.tpl-mono .cs-hero h2 { color: #141414; letter-spacing: .14em; text-transform: uppercase; font-family: Georgia, "Hiragino Mincho ProN", serif; }
+.tpl-mono .cs-hero-kicker { color: #141414; letter-spacing: .5em; }
+.tpl-mono .cs-hero-intro { color: #4c4c4c; }
+.tpl-mono .cs-hero-author { color: #8a8a8a; }
+.tpl-mono .cs-hud { color: #a5a5a5; }
+.tpl-mono .cs-rec { color: #141414; }
+.tpl-mono .cs-sec-title { border-left: none; border-bottom: 2px solid #141414; padding-left: 0; padding-bottom: 6px; letter-spacing: .4em; color: #141414; text-transform: uppercase; }
+.tpl-mono .cs-section p { color: #333333; }
+.tpl-mono .cs-dim { color: #a5a5a5; }
+.tpl-mono .cs-menu a { border-bottom: 1px solid #cfcfc9; }
+.tpl-mono .cs-menu a:hover { background: rgba(0, 0, 0, .05); }
+.tpl-mono .cs-menu-no { color: #141414; }
+.tpl-mono .cs-menu-count { background: #141414; color: #f4f4f2; }
+.tpl-mono .cs-menu-open { background: #141414; }
+.tpl-mono .cs-card { background: #ffffff; border: 1px solid #141414; border-top: 1px solid #141414; color: #141414; padding: 12px 12px 14px; box-shadow: 5px 5px 0 rgba(20, 20, 20, .12); }
+.tpl-mono .cs-card img { filter: grayscale(1) contrast(1.05); }
+.tpl-mono .cs-card:hover img { filter: none; }
+.tpl-mono .cs-card-noimg { background: #e8e8e4; color: #8a8a8a; }
+.tpl-mono .cs-card-name { color: #141414; letter-spacing: .08em; }
+.tpl-mono .cs-card-reading { color: #8a8a8a; }
+.tpl-mono .cs-card-catch { color: #4c4c4c; }
+.tpl-mono .cs-back { border: 1px solid #141414; color: #141414; background: #ffffff; letter-spacing: .15em; }
+.tpl-mono .cs-detail h3 { color: #141414; font-family: Georgia, "Hiragino Mincho ProN", serif; letter-spacing: .08em; }
+.tpl-mono .cs-reading { color: #8a8a8a; }
+.tpl-mono .cs-field { border-bottom: 1px solid #cfcfc9; }
+.tpl-mono .cs-field dt { color: #141414; }
+.tpl-mono .cs-field dd { color: #333333; }
+.tpl-mono .cs-setting p { color: #333333; }
+.tpl-mono .cs-quotes blockquote, .tpl-mono .cs-quote-block blockquote { color: #333333; border-left-color: #141414; font-family: Georgia, "Hiragino Mincho ProN", serif; }
+.tpl-mono .cs-quote-name { color: #141414; }
+.tpl-mono .cs-gallery img, .tpl-mono .cs-main-img { border: 1px solid #141414; filter: grayscale(1) contrast(1.05); }
+.tpl-mono .cs-gallery img:hover, .tpl-mono .cs-main-img:hover { filter: none; }
+.tpl-mono .cs-links-author { color: #8a8a8a; }
+.tpl-mono .cs-links-intro { color: #4c4c4c; }
+.tpl-mono .cs-link-btn { background: #ffffff; color: #141414; border: 1px solid #141414; letter-spacing: .2em; }
+.tpl-mono .cs-link-btn:hover { background: #141414; color: #f4f4f2; }
+.tpl-mono .cs-enter, .tpl-mono .cs-link-chars { background: #141414; border-color: #141414; }
+
+/* ゲーム画面風：RPGのメニューウィンドウ（濃紺＋太枠＋黄色） */
+.tpl-game { background: #0a0f2a; color: #eef0ff; font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif; }
+.tpl-game .cs-hero { border: 3px solid #e8e8f0; background: #101736; box-shadow: inset 0 0 0 2px #0a0f2a, inset 0 0 0 4px #3a4a8c; padding: 30px 14px 22px; margin-bottom: 8px; }
+.tpl-game .cs-hero-mini { padding: 18px 14px 14px; }
+.tpl-game .cs-hero h2 { color: #ffd83d; font-family: "Courier New", "Hiragino Kaku Gothic ProN", monospace; letter-spacing: .1em; text-shadow: 2px 2px 0 #7a2d8c; }
+.tpl-game .cs-hero-kicker { color: #19e3ff; font-family: "Courier New", monospace; }
+.tpl-game .cs-hero-intro { color: #c6ccf5; }
+.tpl-game .cs-hero-author { color: #8f9bd8; }
+.tpl-game .cs-hud { color: #5f6db0; font-family: "Courier New", monospace; }
+.tpl-game .cs-sec-title { border: 3px solid #e8e8f0; border-left: 3px solid #e8e8f0; background: #101736; color: #ffd83d; padding: 8px 14px; letter-spacing: .2em; box-shadow: inset 0 0 0 2px #0a0f2a, inset 0 0 0 4px #3a4a8c; font-family: "Courier New", "Hiragino Kaku Gothic ProN", monospace; }
+.tpl-game .cs-section p { color: #d6dbff; }
+.tpl-game .cs-dim { color: #5f6db0; }
+.tpl-game .cs-menu { gap: 8px; }
+.tpl-game .cs-menu a { border: 2px solid #3a4a8c; background: #101736; padding: 12px 14px; }
+.tpl-game .cs-menu a:hover { background: #1b2452; border-color: #ffd83d; }
+.tpl-game .cs-menu-no { color: #19e3ff; font-family: "Courier New", monospace; }
+.tpl-game .cs-menu-count { background: #ffd83d; color: #0a0f2a; font-weight: 700; }
+.tpl-game .cs-menu-open { background: #ffd83d; color: #0a0f2a; font-weight: 700; }
+.tpl-game .cs-card { background: #101736; border: 3px solid #e8e8f0; border-top: 3px solid #e8e8f0; color: #eef0ff; box-shadow: inset 0 0 0 2px #0a0f2a, inset 0 0 0 4px #3a4a8c; padding: 14px; }
+.tpl-game .cs-card:hover { border-color: #ffd83d; transform: translateY(-3px); }
+.tpl-game .cs-card-no { color: #19e3ff; font-family: "Courier New", monospace; }
+.tpl-game .cs-card-noimg { background: #0a0f2a; color: #5f6db0; }
+.tpl-game .cs-card-name { color: #ffffff; }
+.tpl-game .cs-card-reading { color: #8f9bd8; }
+.tpl-game .cs-card-danger { color: #ff5c5c; }
+.tpl-game .cs-card-catch { color: #c6ccf5; }
+.tpl-game .cs-back { border: 2px solid #e8e8f0; color: #eef0ff; background: #101736; font-weight: 700; padding: 10px 18px; }
+.tpl-game .cs-back:hover { border-color: #ffd83d; color: #ffd83d; }
+.tpl-game .cs-detail h3 { color: #ffffff; font-family: "Courier New", "Hiragino Kaku Gothic ProN", monospace; }
+.tpl-game .cs-reading { color: #8f9bd8; }
+.tpl-game .cs-field { border-bottom: 2px dashed #3a4a8c; }
+.tpl-game .cs-field dd { color: #e6e9ff; }
+.tpl-game .cs-setting p { color: #d6dbff; }
+.tpl-game .cs-quotes blockquote, .tpl-game .cs-quote-block blockquote { color: #e6e9ff; border: 2px solid #3a4a8c; border-left: 6px solid #ffd83d; background: #101736; padding: 10px 14px; margin: 10px 0; }
+.tpl-game .cs-quote-name { color: #ffd83d; }
+.tpl-game .cs-gallery img, .tpl-game .cs-main-img { border: 3px solid #e8e8f0; }
+.tpl-game .cs-links-author { color: #8f9bd8; }
+.tpl-game .cs-links-intro { color: #c6ccf5; }
+.tpl-game .cs-link-btn { background: #101736; border: 3px solid #e8e8f0; color: #eef0ff; box-shadow: inset 0 0 0 2px #0a0f2a, inset 0 0 0 4px #3a4a8c; }
+.tpl-game .cs-link-btn:hover { border-color: #ffd83d; color: #ffd83d; background: #1b2452; }
+.tpl-game .cs-enter, .tpl-game .cs-link-chars { background: #ffd83d; border-color: #ffd83d; color: #0a0f2a; box-shadow: 0 4px 0 #b8860b; }
+.tpl-game .cs-enter:hover, .tpl-game .cs-link-chars:hover { filter: none; transform: translateY(-1px); }
+
+/* 絵本ファンタジー：羊皮紙と森の緑（アーチ型カード＋明朝） */
+.tpl-fantasy { background: #f7ecd2; color: #3d2f23; font-family: Georgia, "Hiragino Mincho ProN", "Yu Mincho", serif; box-shadow: inset 0 0 120px rgba(120, 84, 30, .25); }
+.tpl-fantasy .cs-hero { border-bottom: 3px double #b8860b; }
+.tpl-fantasy .cs-hero h2 { color: #2e5d43; }
+.tpl-fantasy .cs-hero-kicker { color: #b8860b; }
+.tpl-fantasy .cs-hero-intro { color: #6b5744; }
+.tpl-fantasy .cs-hero-author { color: #a08b6d; }
+.tpl-fantasy .cs-hud { color: #bfa87f; }
+.tpl-fantasy .cs-sec-title { border-left-color: #2e5d43; color: #2e5d43; }
+.tpl-fantasy .cs-section p { color: #54432f; }
+.tpl-fantasy .cs-dim { color: #bfa87f; }
+.tpl-fantasy .cs-menu a { border-bottom: 1px solid #ddc895; }
+.tpl-fantasy .cs-menu a:hover { background: rgba(46, 93, 67, .06); }
+.tpl-fantasy .cs-menu-no { color: #b8860b; }
+.tpl-fantasy .cs-menu-count { background: #eadfae; color: #6b5a2e; border-radius: 999px; }
+.tpl-fantasy .cs-menu-open { background: #2e5d43; border-radius: 999px; }
+.tpl-fantasy .cs-card { background: #fdf6e0; border: 2px solid #b8860b; border-radius: 90px 90px 14px 14px; color: #3d2f23; padding: 20px 12px 14px; overflow: hidden; box-shadow: 0 8px 20px rgba(120, 84, 30, .18); text-align: center; align-items: center; }
+.tpl-fantasy .cs-card img { border-radius: 60px 60px 8px 8px; }
+.tpl-fantasy .cs-card-noimg { background: #eadfae; color: #a08b6d; border-radius: 60px 60px 8px 8px; width: 100%; }
+.tpl-fantasy .cs-card-name { color: #2e5d43; }
+.tpl-fantasy .cs-card-reading { color: #a08b6d; }
+.tpl-fantasy .cs-card-catch { color: #6b5744; }
+.tpl-fantasy .cs-back { border: 2px solid #2e5d43; color: #2e5d43; background: #fdf6e0; border-radius: 999px; padding: 8px 20px; }
+.tpl-fantasy .cs-detail h3 { color: #2e5d43; }
+.tpl-fantasy .cs-reading { color: #a08b6d; }
+.tpl-fantasy .cs-field { border-bottom: 1px solid #ddc895; }
+.tpl-fantasy .cs-field dd { color: #54432f; }
+.tpl-fantasy .cs-setting p { color: #54432f; }
+.tpl-fantasy .cs-quotes blockquote, .tpl-fantasy .cs-quote-block blockquote { color: #54432f; border-left-color: #b8860b; font-style: italic; }
+.tpl-fantasy .cs-quote-name { color: #2e5d43; }
+.tpl-fantasy .cs-gallery img { border: 2px solid #b8860b; border-radius: 40px 40px 8px 8px; }
+.tpl-fantasy .cs-main-img { border: 2px solid #b8860b; border-radius: 60px 60px 10px 10px; }
+.tpl-fantasy .cs-links-author { color: #a08b6d; }
+.tpl-fantasy .cs-links-intro { color: #6b5744; }
+.tpl-fantasy .cs-link-btn { background: #fdf6e0; border: 2px solid #2e5d43; border-radius: 999px; color: #2e5d43; }
+.tpl-fantasy .cs-link-btn:hover { background: #f1e5c3; }
+.tpl-fantasy .cs-enter, .tpl-fantasy .cs-link-chars { background: #2e5d43; border-color: #2e5d43; border-radius: 999px; }
 
 /* --- UIテンプレ差分 --- */
 /* UI-1 記録ファイル型：行メニュー＋OPEN札（共通メニューをそのまま活かす） */
@@ -253,6 +472,7 @@ input[type="file"] { color: #4c4754; font-size: 15px; }
 .ui-simple .cs-menu-count { background: #eee; }
 .ui-simple .cs-dim { color: #aaa; }
 .ui-simple .cs-gallery img, .ui-simple .cs-main-img { border-color: #ddd; }
+
 
 /* ============================================================
    演出オーバーレイ

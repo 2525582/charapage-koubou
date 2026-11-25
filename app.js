@@ -250,13 +250,17 @@
     for (var i = 0; i < (p.characters || []).length; i++) if (p.characters[i].image) return p.characters[i].image;
     return p.bg_image || "";
   }
+  var TPL_LABELS = {
+    afterimage: "AFTERIMAGE風", abyss: "ABYSS風", sacred: "セイクリッド風",
+    neon: "ネオン風", wa: "和風"
+  };
   function cardHTML(p) {
     var t = thumbOf(p);
     return '<a class="page-card" href="#/view/' + p.id + '">' +
       (t ? '<img src="' + t + '" alt="">' : '<span class="page-card-noimg">' + esc((p.title || "?").slice(0, 2)) + "</span>") +
       '<span class="page-card-title">' + esc(p.title || "UNTITLED") + "</span>" +
       '<span class="page-card-author">by ' + esc(p.author_name || "") + "</span>" +
-      '<span class="page-card-meta">' + (p.template === "abyss" ? "ABYSS風" : "AFTERIMAGE風") + " ／ キャラ " + (p.characters || []).length + "人</span></a>";
+      '<span class="page-card-meta">' + (TPL_LABELS[p.template] || "AFTERIMAGE風") + " ／ キャラ " + (p.characters || []).length + "人</span></a>";
   }
   var galleryCache = [];
   function loadGallery() {
@@ -616,6 +620,9 @@
       show("preview");
       window.KoubouViewer.renderPage($("preview-root"), JSON.parse(JSON.stringify(d)));
     });
+    // プレビューはハッシュを変えずに開くので、「編集に戻る」はハッシュではなく
+    // 直接 show("editor") で戻す（下書きはメモリに残っているのでそのまま復元される）
+    $("btn-back-edit").addEventListener("click", function () { show("editor"); });
     $("btn-copy-link").addEventListener("click", function () {
       if (currentViewId) copyText(shareLink(currentViewId), $("copy-done"));
     });

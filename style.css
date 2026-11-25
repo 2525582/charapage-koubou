@@ -128,6 +128,99 @@ input[type="file"] { color: #4c4754; font-size: 15px; }
 .tpl-abyss .cs-hud { color: #4d7a5c; }
 .tpl-afterimage { background: radial-gradient(ellipse at top, #17121c 0%, #0b0b0f 60%); }
 
+/* セイクリッド風：明るい聖堂アーカイブ（象牙＋金＋明朝） */
+.tpl-sacred { background: #faf7ef; color: #33302a; font-family: Georgia, "Hiragino Mincho ProN", "Yu Mincho", serif; }
+.tpl-sacred .cs-hero { border-bottom: 4px double #c9a227; }
+.tpl-sacred .cs-hero h2 { color: #33302a; }
+.tpl-sacred .cs-hero-kicker { color: #b8860b; }
+.tpl-sacred .cs-hero-intro { color: #5c5546; }
+.tpl-sacred .cs-hero-author { color: #8a8270; }
+.tpl-sacred .cs-hud { color: #a3987d; }
+.tpl-sacred .cs-sec-title { border-left-color: #c9a227; color: #33302a; }
+.tpl-sacred .cs-section p { color: #4a453a; }
+.tpl-sacred .cs-dim { color: #a3987d; }
+.tpl-sacred .cs-menu a { border-bottom: 1px solid #e2d9bf; }
+.tpl-sacred .cs-menu a:hover { background: rgba(184, 134, 11, .07); }
+.tpl-sacred .cs-menu-no { color: #b8860b; }
+.tpl-sacred .cs-menu-count { background: #efe7cf; color: #6b5f3a; }
+.tpl-sacred .cs-card { background: #ffffff; border: 1px solid #c9a227; outline: 1px solid #e8dcb4; outline-offset: 3px; color: #33302a; }
+.tpl-sacred .cs-card-noimg { background: #f3ecd7; color: #a3987d; }
+.tpl-sacred .cs-card-name { color: #33302a; }
+.tpl-sacred .cs-card-reading { color: #8a8270; }
+.tpl-sacred .cs-card-catch { color: #5c5546; }
+.tpl-sacred .cs-back { border: 1px solid #b8860b; color: #6b5f3a; background: #ffffff; }
+.tpl-sacred .cs-detail h3 { color: #33302a; }
+.tpl-sacred .cs-reading { color: #8a8270; }
+.tpl-sacred .cs-field { border-bottom: 1px solid #e2d9bf; }
+.tpl-sacred .cs-field dd { color: #4a453a; }
+.tpl-sacred .cs-setting p { color: #4a453a; }
+.tpl-sacred .cs-quotes blockquote, .tpl-sacred .cs-quote-block blockquote { color: #4a453a; border-left-color: #c9a227; }
+.tpl-sacred .cs-quote-name { color: #b8860b; }
+.tpl-sacred .cs-gallery img, .tpl-sacred .cs-main-img { border: 1px solid #c9a227; }
+
+/* ネオン風：サイバーシティ（濃紺＋ピンク／シアンの発光） */
+.tpl-neon { background: #07030f; color: #f2f0ff; }
+.tpl-neon .cs-hero { border-bottom: 1px solid #2a1650; }
+.tpl-neon .cs-hero h2 { color: #f2f0ff; text-shadow: 0 0 12px rgba(255, 46, 136, .75), 0 0 30px rgba(25, 227, 255, .35); }
+.tpl-neon .cs-hero-kicker { color: #19e3ff; text-shadow: 0 0 8px rgba(25, 227, 255, .8); }
+.tpl-neon .cs-hero-intro { color: #cfc9f5; }
+.tpl-neon .cs-hero-author { color: #8f86c9; }
+.tpl-neon .cs-hud { color: #6f66a8; }
+.tpl-neon .cs-sec-title { border-left-color: #ff2e88; color: #f2f0ff; text-shadow: 0 0 10px rgba(255, 46, 136, .6); }
+.tpl-neon .cs-section p { color: #d9d4ff; }
+.tpl-neon .cs-dim { color: #6f66a8; }
+.tpl-neon .cs-menu a { border-bottom: 1px solid #241447; border-radius: 8px; }
+.tpl-neon .cs-menu a:hover { background: rgba(25, 227, 255, .07); box-shadow: inset 0 0 14px rgba(255, 46, 136, .18); }
+.tpl-neon .cs-menu-no { color: #19e3ff; text-shadow: 0 0 7px rgba(25, 227, 255, .8); }
+.tpl-neon .cs-menu-count { background: #1b0f38; color: #cfc9f5; border: 1px solid #3a2270; border-radius: 6px; }
+.tpl-neon .cs-card { background: #0d0620; border: 1px solid #3a2270; border-radius: 12px; color: #f2f0ff; box-shadow: 0 0 10px rgba(25, 227, 255, .16), inset 0 0 18px rgba(255, 46, 136, .06); }
+.tpl-neon .cs-card:hover { box-shadow: 0 0 16px rgba(255, 46, 136, .5), 0 0 26px rgba(25, 227, 255, .3); }
+.tpl-neon .cs-card img { border-radius: 8px; }
+.tpl-neon .cs-card-noimg { background: #150a30; color: #6f66a8; border-radius: 8px; }
+.tpl-neon .cs-card-name { color: #ffffff; text-shadow: 0 0 8px rgba(25, 227, 255, .55); }
+.tpl-neon .cs-card-reading { color: #a99fe0; }
+.tpl-neon .cs-card-danger { color: #ff5c5c; text-shadow: 0 0 8px rgba(255, 60, 60, .7); }
+.tpl-neon .cs-card-catch { color: #cfc9f5; }
+.tpl-neon .cs-back { border: 1px solid #19e3ff; color: #19e3ff; background: transparent; border-radius: 8px; box-shadow: 0 0 8px rgba(25, 227, 255, .35); }
+.tpl-neon .cs-detail h3 { color: #ffffff; text-shadow: 0 0 12px rgba(25, 227, 255, .6); }
+.tpl-neon .cs-reading { color: #a99fe0; }
+.tpl-neon .cs-field { border-bottom: 1px solid #241447; }
+.tpl-neon .cs-field dd { color: #e6e1ff; }
+.tpl-neon .cs-setting p { color: #d9d4ff; }
+.tpl-neon .cs-quotes blockquote, .tpl-neon .cs-quote-block blockquote { color: #e6e1ff; }
+.tpl-neon .cs-gallery img, .tpl-neon .cs-main-img { border: 1px solid #3a2270; border-radius: 8px; box-shadow: 0 0 10px rgba(25, 227, 255, .2); }
+
+/* 和風：巻物アーカイブ（和紙＋墨＋朱） */
+.tpl-wa { background: #f3ead8; color: #26221c; font-family: "Hiragino Mincho ProN", "Yu Mincho", Georgia, serif; }
+.tpl-wa .cs-hero { border-bottom: 3px double #26221c; }
+.tpl-wa .cs-hero h2 { color: #26221c; letter-spacing: .18em; }
+.tpl-wa .cs-hero-kicker { color: #b03a2e; letter-spacing: .5em; }
+.tpl-wa .cs-hero-intro { color: #4d463a; }
+.tpl-wa .cs-hero-author { color: #8a7f6a; }
+.tpl-wa .cs-hud { color: #a2947a; }
+.tpl-wa .cs-sec-title { border-left: none; border-bottom: 3px double #b03a2e; padding-left: 0; padding-bottom: 6px; letter-spacing: .45em; color: #26221c; }
+.tpl-wa .cs-section p { color: #3d372d; }
+.tpl-wa .cs-dim { color: #a2947a; }
+.tpl-wa .cs-menu a { border-bottom: 1px solid #d8cbae; }
+.tpl-wa .cs-menu a:hover { background: rgba(176, 58, 46, .06); }
+.tpl-wa .cs-menu-no { color: #b03a2e; }
+.tpl-wa .cs-menu-count { background: #e7dcc0; color: #5c5340; }
+.tpl-wa .cs-menu-open { background: #b03a2e; }
+.tpl-wa .cs-card { background: #faf4e3; border: 1px solid #26221c; color: #26221c; box-shadow: 3px 3px 0 rgba(38, 34, 28, .18); }
+.tpl-wa .cs-card-noimg { background: #e9dfc6; color: #8a7f6a; }
+.tpl-wa .cs-card-name { color: #26221c; letter-spacing: .12em; }
+.tpl-wa .cs-card-reading { color: #8a7f6a; }
+.tpl-wa .cs-card-catch { color: #4d463a; }
+.tpl-wa .cs-back { border: 1px solid #26221c; color: #26221c; background: #faf4e3; }
+.tpl-wa .cs-detail h3 { color: #26221c; letter-spacing: .12em; }
+.tpl-wa .cs-reading { color: #8a7f6a; }
+.tpl-wa .cs-field { border-bottom: 1px solid #d8cbae; }
+.tpl-wa .cs-field dd { color: #3d372d; }
+.tpl-wa .cs-setting p { color: #3d372d; }
+.tpl-wa .cs-quotes blockquote, .tpl-wa .cs-quote-block blockquote { color: #3d372d; border-left-color: #b03a2e; }
+.tpl-wa .cs-quote-name { color: #b03a2e; }
+.tpl-wa .cs-gallery img, .tpl-wa .cs-main-img { border: 1px solid #26221c; }
+
 /* --- UIテンプレ差分 --- */
 /* UI-1 記録ファイル型：行メニュー＋OPEN札（共通メニューをそのまま活かす） */
 .ui-record .cs-menu a { background: linear-gradient(90deg, rgba(255,255,255,.03), transparent); }

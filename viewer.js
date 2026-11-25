@@ -106,14 +106,29 @@
       "</div>";
   }
 
+  // ---------- サイトテンプレ ----------
+  var TEMPLATES = {
+    afterimage: { cls: "tpl-afterimage", kicker: "CHARACTER ARCHIVE" },
+    abyss: { cls: "tpl-abyss", kicker: "INTEGRATED CONTAINMENT TERMINAL" },
+    sacred: { cls: "tpl-sacred", kicker: "SACRED ARCHIVE" },
+    neon: { cls: "tpl-neon", kicker: "NEON CITY ARCHIVE" },
+    wa: { cls: "tpl-wa", kicker: "SCROLL ARCHIVE" }
+  };
+  // 明るいテンプレ（背景画像のオーバーレイを薄くする）
+  var LIGHT_TEMPLATES = { sacred: true, wa: true };
+
   // ---------- 本体描画 ----------
   function renderPage(root, page) {
     var prefix = uid();
     var chars = page.characters || [];
-    var tpl = page.template === "abyss" ? "tpl-abyss" : "tpl-afterimage";
+    var tplDef = TEMPLATES[page.template] || TEMPLATES.afterimage;
+    var tpl = tplDef.cls;
     var ui = "ui-" + (page.ui_template || "record");
     var theme = page.theme_color || "#c8102e";
-    var bg = page.bg_image ? 'background-image:linear-gradient(rgba(0,0,0,.72),rgba(0,0,0,.85)),url(' + page.bg_image + ");" : "";
+    var overlay = LIGHT_TEMPLATES[page.template]
+      ? "linear-gradient(rgba(250,247,239,.82),rgba(250,247,239,.9))"
+      : "linear-gradient(rgba(0,0,0,.72),rgba(0,0,0,.85))";
+    var bg = page.bg_image ? "background-image:" + overlay + ",url(" + page.bg_image + ");" : "";
 
     var menuItems = [
       ["characters", "CHARACTERS", chars.length],
@@ -128,7 +143,7 @@
     html += '<div class="cs ' + tpl + " " + ui + '" style="--theme:' + esc(theme) + ";" + bg + '">';
     // トップ
     html += '<div class="cs-hero">' +
-      '<p class="cs-hero-kicker">' + (page.template === "abyss" ? "INTEGRATED CONTAINMENT TERMINAL" : "CHARACTER ARCHIVE") + "</p>" +
+      '<p class="cs-hero-kicker">' + tplDef.kicker + "</p>" +
       "<h2>" + esc(page.title || "UNTITLED") + "</h2>" +
       (page.intro ? '<p class="cs-hero-intro">' + nl(page.intro) + "</p>" : "") +
       '<p class="cs-hero-author">by ' + esc(page.author_name || "") + "</p>" +

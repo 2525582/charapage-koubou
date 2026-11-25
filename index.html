@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>キャラページ工房 — CHARACTER PAGE WORKSHOP</title>
 <meta name="description" content="テンプレを選んで画像と設定を入れるだけで、キャラ紹介サイトが作れるサービス。公開ボタンでその場で公開、リンクをコピーしてシェアできます。">
-<link rel="stylesheet" href="style.css?v=3">
+<link rel="stylesheet" href="style.css?v=4">
 </head>
 <body>
 
@@ -30,7 +30,7 @@
   <section id="view-home" class="route-view">
     <div class="hero">
       <h1>キャラページ工房</h1>
-      <p class="hero-lead">テンプレを選んで、画像と設定を入れるだけ。<br>AFTERIMAGE風・ABYSS風のキャラ紹介サイトが、公開ボタンひとつでその場で公開できます。</p>
+      <p class="hero-lead">テンプレを選んで、画像と設定を入れるだけ。<br>AFTERIMAGE風・ABYSS風・セイクリッド風・ネオン風・和風のキャラ紹介サイトが、公開ボタンひとつでその場で公開できます。</p>
       <a class="btn btn-big" href="#/editor" id="hero-create">ページを作る</a>
       <p class="hero-note">登録はいりません。作って、公開ボタンを押すだけです。</p>
     </div>
@@ -40,8 +40,8 @@
     </div>
     <div class="feature-grid">
       <div class="feature-card">
-        <h3>テンプレ2種</h3>
-        <p>記録アーカイブ型と監視ターミナル型。世界観に合わせて選べます。</p>
+        <h3>テンプレ5種</h3>
+        <p>記録アーカイブ型、監視ターミナル型、聖堂アーカイブ型、サイバーシティ型、巻物アーカイブ型。世界観に合わせて選べます。</p>
       </div>
       <div class="feature-card">
         <h3>UIテンプレ5種</h3>
@@ -108,6 +108,9 @@
             <select id="f-template">
               <option value="afterimage">AFTERIMAGE風 ― 記録アーカイブ型</option>
               <option value="abyss">ABYSS風 ― 監視ターミナル型</option>
+              <option value="sacred">セイクリッド風 ― 聖堂アーカイブ型</option>
+              <option value="neon">ネオン風 ― サイバーシティ型</option>
+              <option value="wa">和風 ― 巻物アーカイブ型</option>
             </select>
           </label>
           <label>UIテンプレ（サイトテンプレと自由に組み合わせできます）
@@ -174,7 +177,7 @@
   <!-- プレビュー -->
   <section id="view-preview" class="route-view" hidden>
     <div class="viewer-toolbar">
-      <a href="#/editor" class="btn btn-ghost">編集に戻る</a>
+      <button id="btn-back-edit" class="btn btn-ghost">編集に戻る</button>
       <span class="note">これはプレビューです。まだ公開されていません。</span>
     </div>
     <div id="preview-root"></div>
@@ -196,7 +199,7 @@
 
 <script src="config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="viewer.js"></script>
-<script src="app.js?v=2"></script>
+<script src="viewer.js?v=2"></script>
+<script src="app.js?v=3"></script>
 </body>
 </html>

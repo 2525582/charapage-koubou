@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>キャラページ工房 — CHARACTER PAGE WORKSHOP</title>
+<meta name="description" content="テンプレを選んで画像と設定を入れるだけで、キャラ紹介サイトが作れるサービス。公開ボタンでその場で公開、リンクをコピーしてシェアできます。">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header id="site-header">
+  <a class="logo" href="#/">
+    <span class="logo-main">キャラページ工房</span>
+    <span class="logo-sub">CHARACTER PAGE WORKSHOP</span>
+  </a>
+  <nav id="main-nav">
+    <a href="#/" data-nav="home">みんなが作ったページ</a>
+    <a href="#/editor" data-nav="editor">作る</a>
+    <a href="#/mypage" data-nav="mypage">マイページ</a>
+    <a href="#/login" data-nav="login" id="nav-auth">ログイン</a>
+  </nav>
+</header>
+
+<div id="demo-banner" class="demo-banner" hidden>
+  DEMOモードで動いています。これは試作用で、作品はこの端末の中にだけ保存されます。本当の公開（みんなと共有）は、SETUP.md の手順で保存先を繋ぐと使えるようになります。
+</div>
+
+<main id="app">
+  <!-- ホーム：みんなが作ったページ -->
+  <section id="view-home" class="route-view">
+    <div class="hero">
+      <h1>キャラページ工房</h1>
+      <p class="hero-lead">テンプレを選んで、画像と設定を入れるだけ。<br>AFTERIMAGE風・ABYSS風のキャラ紹介サイトが、公開ボタンひとつでその場で公開できます。</p>
+      <a class="btn btn-big" href="#/editor">ページを作る</a>
+    </div>
+    <div class="section-head">
+      <h2>みんなが作ったページ</h2>
+      <input id="gallery-search" type="search" placeholder="タイトル・作者で探す">
+    </div>
+    <div id="gallery-grid" class="gallery-grid"></div>
+    <p id="gallery-empty" class="empty-note" hidden>まだ公開されたページがありません。最初の1ページを作ってみましょう。</p>
+  </section>
+
+  <!-- ログイン / 新規登録 -->
+  <section id="view-login" class="route-view" hidden>
+    <div class="auth-box">
+      <h2 id="auth-title">ログイン</h2>
+      <p class="note" id="auth-note"></p>
+      <label>メールアドレス
+        <input id="auth-email" type="email" autocomplete="email" placeholder="you@example.com">
+      </label>
+      <label>パスワード
+        <input id="auth-password" type="password" autocomplete="current-password" placeholder="6文字以上">
+      </label>
+      <p id="auth-error" class="error-note" hidden></p>
+      <button id="auth-submit" class="btn btn-big">ログインする</button>
+      <button id="auth-switch" class="btn btn-ghost">アカウントを持っていない人はこちら（新規登録）</button>
+    </div>
+  </section>
+
+  <!-- 編集画面 -->
+  <section id="view-editor" class="route-view" hidden>
+    <div class="section-head">
+      <h2>ページを作る</h2>
+      <div class="editor-actions">
+        <button id="btn-preview" class="btn btn-ghost">プレビュー</button>
+        <button id="btn-save-draft" class="btn btn-ghost">下書き保存</button>
+        <button id="btn-publish" class="btn">公開する</button>
+      </div>
+    </div>
+    <p id="editor-status" class="note"></p>
+
+    <div class="editor-layout">
+      <div class="editor-main">
+        <fieldset class="editor-block">
+          <legend>サイト全体の設定</legend>
+          <label>サイトのタイトル <input id="f-title" type="text" placeholder="例：CHARACTER ARCHIVE"></label>
+          <label>作者名 <input id="f-author" type="text" placeholder="例：ぱんだ"></label>
+          <label>紹介文 <textarea id="f-intro" rows="3" placeholder="このサイトの紹介を書きます"></textarea></label>
+          <label>テーマカラー <input id="f-theme-color" type="color" value="#c8102e"></label>
+          <label>背景画像（なくてもOK）
+            <input id="f-bg-image" type="file" accept="image/*">
+          </label>
+          <div id="bg-preview" class="thumb-row"></div>
+          <label>WORLD（世界観）の文章 <textarea id="f-world" rows="5" placeholder="世界観・用語集・年表などを自由に"></textarea></label>
+          <label>ABOUTの文章 <textarea id="f-about" rows="4" placeholder="作者について、注意事項など"></textarea></label>
+        </fieldset>
+
+        <fieldset class="editor-block">
+          <legend>テンプレと演出</legend>
+          <label>サイトテンプレ
+            <select id="f-template">
+              <option value="afterimage">AFTERIMAGE風 ― 記録アーカイブ型</option>
+              <option value="abyss">ABYSS風 ― 監視ターミナル型</option>
+            </select>
+          </label>
+          <label>UIテンプレ（サイトテンプレと自由に組み合わせできます）
+            <select id="f-ui-template">
+              <option value="record">記録ファイル型</option>
+              <option value="terminal">監視端末型</option>
+              <option value="poster">ポスター型</option>
+              <option value="book">本棚・手帳型</option>
+              <option value="simple">シンプル綺麗型</option>
+            </select>
+          </label>
+          <label>開く時の演出
+            <select id="f-open-fx">
+              <option value="glitch">グリッチ＋名前ドーン</option>
+              <option value="connect">CONNECTING（監視系）</option>
+              <option value="cover">表紙せり上がり（記録系）</option>
+              <option value="flash">残像フラッシュ</option>
+              <option value="page">ページめくり</option>
+            </select>
+          </label>
+          <label>戻る時の演出
+            <select id="f-back-fx">
+              <option value="closed">RECORD CLOSED（名前が崩れて消える）</option>
+              <option value="shutter">シャッター</option>
+              <option value="signal">SIGNAL LOST</option>
+              <option value="fade">残像フェード</option>
+              <option value="page">ページめくり</option>
+            </select>
+          </label>
+          <label class="check-row"><input id="f-is-public" type="checkbox" checked> 公開する（みんなが作ったページに載ります）</label>
+        </fieldset>
+
+        <fieldset class="editor-block">
+          <legend>キャラクター</legend>
+          <div id="char-tabs" class="char-tabs"></div>
+          <button id="btn-add-char" class="btn btn-ghost">＋ キャラを追加</button>
+          <div id="char-editor"></div>
+        </fieldset>
+      </div>
+    </div>
+  </section>
+
+  <!-- マイページ -->
+  <section id="view-mypage" class="route-view" hidden>
+    <div class="section-head">
+      <h2>マイページ</h2>
+      <button id="btn-logout" class="btn btn-ghost">ログアウト</button>
+    </div>
+    <p id="mypage-user" class="note"></p>
+    <div id="mypage-list" class="gallery-grid"></div>
+    <p id="mypage-empty" class="empty-note" hidden>まだページがありません。「作る」から最初のページを作りましょう。</p>
+  </section>
+
+  <!-- 公開ページビューア -->
+  <section id="view-page" class="route-view" hidden>
+    <div class="viewer-toolbar">
+      <a href="#/" class="btn btn-ghost">工房トップへ</a>
+      <button id="btn-copy-link" class="btn">リンクをコピー</button>
+      <span id="copy-done" class="note" hidden>コピーしました</span>
+    </div>
+    <div id="page-root"></div>
+  </section>
+
+  <!-- プレビュー -->
+  <section id="view-preview" class="route-view" hidden>
+    <div class="viewer-toolbar">
+      <a href="#/editor" class="btn btn-ghost">編集に戻る</a>
+      <span class="note">これはプレビューです。まだ公開されていません。</span>
+    </div>
+    <div id="preview-root"></div>
+  </section>
+</main>
+
+<!-- 演出オーバーレイ -->
+<div id="fx-overlay" hidden>
+  <div class="fx-panel fx-panel-top"></div>
+  <div class="fx-panel fx-panel-bottom"></div>
+  <div class="fx-noise"></div>
+  <div class="fx-text" id="fx-text">RECORD</div>
+  <div class="fx-sub" id="fx-sub"></div>
+</div>
+
+<footer id="site-footer">
+  <p>キャラページ工房 — CHARACTER PAGE WORKSHOP</p>
+</footer>
+
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="viewer.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
